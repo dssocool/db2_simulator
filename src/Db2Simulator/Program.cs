@@ -51,6 +51,8 @@ static string ResolveConfigPath(string[] args)
         Path.Combine(AppContext.BaseDirectory, "config", "mappings.json"),
         Path.Combine(Directory.GetCurrentDirectory(), "config", "mappings.json"),
         Path.Combine(Directory.GetCurrentDirectory(), "mappings.json"),
+        Path.Combine(AppContext.BaseDirectory, "config", "mappings.json.example"),
+        Path.Combine(Directory.GetCurrentDirectory(), "config", "mappings.json.example"),
     };
     foreach (string c in candidates)
         if (File.Exists(c))
