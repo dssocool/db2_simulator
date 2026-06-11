@@ -23,5 +23,22 @@
     "ignoreCase": true,
     "collapseWhitespace": true,
     "trimTrailingSemicolon": true
+  },
+  "tests": {
+    "db2": {
+      "host": "127.0.0.1",
+      "port": 50000,
+      "database": "SAMPLE",
+      "user": "db2inst1",
+      "password": "YourStrongPassword123"
+    },
+    "sqlServer": {
+      "host": "127.0.0.1",
+      "port": 1433,
+      "database": "master",
+      "user": "sa",
+      "password": "YourStrongPassword123",
+      "linkedServer": "DB2LS"
+    }
   }
 }

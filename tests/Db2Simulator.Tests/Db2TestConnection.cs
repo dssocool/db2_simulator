@@ -46,8 +46,33 @@ internal static class Db2TestConnection
             : config.Server.Host);
         int resolvedPort = port ?? config.Server.Port;
 
-        return $"Server={resolvedHost}:{resolvedPort};Database={config.Server.Database};UID={user.User};PWD={passwordOverride ?? user.Password};";
+        return BuildConnectionString(
+            resolvedHost,
+            resolvedPort,
+            config.Server.Database,
+            user.User,
+            passwordOverride ?? user.Password);
     }
+
+    public static string BuildConnectionString(
+        DatabaseConnectionConfig config,
+        string? passwordOverride = null)
+    {
+        return BuildConnectionString(
+            config.Host,
+            config.Port,
+            config.Database,
+            config.User,
+            passwordOverride ?? config.Password);
+    }
+
+    private static string BuildConnectionString(
+        string host,
+        int port,
+        string database,
+        string user,
+        string password) =>
+        $"Server={host}:{port};Database={database};UID={user};PWD={password};";
 
     public static string? Probe(string connectionString)
     {

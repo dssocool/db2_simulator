@@ -36,7 +36,7 @@ public sealed class SmokeTests
     [SkippableFact]
     public void Timestamp_ReturnsSingleRowWithTsColumn()
     {
-        using var session = Db2TestSession.Create([TimestampMapping]);
+        using var session = Db2TestSession.CreateEmbedded([TimestampMapping]);
         Skip.IfNot(session.SkipReason is null, session.SkipReason ?? "DB2 unavailable");
 
         using var conn = session.Open();
@@ -53,7 +53,7 @@ public sealed class SmokeTests
     [SkippableFact]
     public void SimpleSelect_ReturnsSingleRow()
     {
-        using var session = Db2TestSession.Create([SimpleSelectMapping]);
+        using var session = Db2TestSession.CreateEmbedded([SimpleSelectMapping]);
         Skip.IfNot(session.SkipReason is null, session.SkipReason ?? "DB2 unavailable");
 
         using var conn = session.Open();
@@ -69,7 +69,7 @@ public sealed class SmokeTests
     [SkippableFact]
     public void BadPassword_IsRejected()
     {
-        using var session = Db2TestSession.Create();
+        using var session = Db2TestSession.CreateEmbedded();
         Skip.IfNot(session.SkipReason is null, session.SkipReason ?? "DB2 unavailable");
 
         var ex = Assert.Throws<DB2Exception>(() =>
@@ -86,7 +86,7 @@ public sealed class SmokeTests
     [SkippableFact]
     public void UnmappedQuery_ReturnsSqlCode204()
     {
-        using var session = Db2TestSession.Create(defaultResponse: UnmappedErrorResponse);
+        using var session = Db2TestSession.CreateEmbedded(defaultResponse: UnmappedErrorResponse);
         Skip.IfNot(session.SkipReason is null, session.SkipReason ?? "DB2 unavailable");
 
         using var conn = session.Open();

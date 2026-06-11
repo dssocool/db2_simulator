@@ -10,6 +10,8 @@ public sealed class SimulatorConfig
     public AuthConfig Auth { get; set; } = new();
     public TraceConfig Trace { get; set; } = new();
     public MatchingConfig Matching { get; set; } = new();
+    /// <summary>Optional integration-test connection targets; omit a section to skip those tests.</summary>
+    public TestConnectionsConfig Tests { get; set; } = new();
     /// <summary>Populated from default_data.json at startup; tests may set inline.</summary>
     [JsonIgnore]
     public DefaultResponseConfig? DefaultResponse { get; set; }
@@ -165,4 +167,31 @@ public sealed class DefaultResponseConfig
     public ResultConfig? Result { get; set; }
     public long? UpdateCount { get; set; }
     public ErrorConfig? Error { get; set; }
+}
+
+public sealed class TestConnectionsConfig
+{
+    public DatabaseConnectionConfig? Db2 { get; set; }
+    public SqlServerConnectionConfig? SqlServer { get; set; }
+}
+
+public class DatabaseConnectionConfig
+{
+    public string Host { get; set; } = "";
+    public int Port { get; set; }
+    public string Database { get; set; } = "";
+    public string User { get; set; } = "";
+    public string Password { get; set; } = "";
+
+    public bool IsConfigured =>
+        !string.IsNullOrWhiteSpace(Host)
+        && Port is > 0 and <= 65535
+        && !string.IsNullOrWhiteSpace(Database)
+        && !string.IsNullOrWhiteSpace(User);
+}
+
+public sealed class SqlServerConnectionConfig : DatabaseConnectionConfig
+{
+    /// <summary>Linked server name for OPENQUERY-style tests.</summary>
+    public string LinkedServer { get; set; } = "";
 }

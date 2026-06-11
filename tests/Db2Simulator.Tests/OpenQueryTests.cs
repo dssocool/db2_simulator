@@ -22,7 +22,7 @@ public sealed class OpenQueryTests
     [SkippableFact]
     public void PrepareWithDescribe_ReturnsTsColumnMetadata()
     {
-        using var session = Db2TestSession.Create([TimestampMapping]);
+        using var session = Db2TestSession.CreateEmbedded([TimestampMapping]);
         Skip.IfNot(session.SkipReason is null, session.SkipReason ?? "DB2 unavailable");
 
         using var conn = session.Open();
@@ -37,7 +37,7 @@ public sealed class OpenQueryTests
     [SkippableFact]
     public void StandaloneDescribe_ReturnsTsColumnMetadata()
     {
-        using var session = Db2TestSession.Create([TimestampMapping]);
+        using var session = Db2TestSession.CreateEmbedded([TimestampMapping]);
         Skip.IfNot(session.SkipReason is null, session.SkipReason ?? "DB2 unavailable");
 
         using var conn = session.Open();
@@ -54,7 +54,7 @@ public sealed class OpenQueryTests
     [SkippableFact]
     public void OpenQuery_ReturnsSingleRow()
     {
-        using var session = Db2TestSession.Create([TimestampMapping]);
+        using var session = Db2TestSession.CreateEmbedded([TimestampMapping]);
         Skip.IfNot(session.SkipReason is null, session.SkipReason ?? "DB2 unavailable");
 
         using var conn = session.Open();

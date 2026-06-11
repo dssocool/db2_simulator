@@ -93,9 +93,31 @@ project). Add your own mappings in `config/data.json` (gitignored). Copy
     "ignoreCase": true,
     "collapseWhitespace": true,      // treat runs of whitespace as one space
     "trimTrailingSemicolon": true
+  },
+  "tests": {
+    "db2": {                         // optional — omit to skip real-DB2 tests
+      "host": "127.0.0.1",
+      "port": 50000,
+      "database": "SAMPLE",
+      "user": "db2inst1",
+      "password": "YourStrongPassword123"
+    },
+    "sqlServer": {                 // optional — omit to skip SQL Server tests
+      "host": "127.0.0.1",
+      "port": 1433,
+      "database": "master",
+      "user": "sa",
+      "password": "YourStrongPassword123",
+      "linkedServer": "DB2LS"      // linked server name for OPENQUERY tests
+    }
   }
 }
 ```
+
+The top-level `server`, `auth`, `trace`, and `matching` sections configure the simulator
+process (`dotnet run`). The optional `tests` section holds connection details for
+integration tests against real databases; omit `tests.db2` or `tests.sqlServer` (or leave
+`tests` empty) and those tests are skipped automatically.
 
 ### Built-in data (`config/default_data.json`)
 
@@ -181,23 +203,23 @@ Use JSON `null` for a NULL cell.
 
 ## Testing
 
-Integration tests read connection details from `config/config.json`
-(`server.host`, `server.port`, `server.database`, and the first entry in
-`auth.users`). Copy `config/config.json.example` to `config/config.json` and
-set the host/port to your DB2 server (use any `serverName` other than `DB2SIM`).
+Copy `config/config.json.example` to `config/config.json` before running tests.
+Simulator-focused tests start an embedded simulator using the top-level `server`
+and `auth` settings and supply their own SQL-to-result mappings inline — they do
+not read `default_data.json` or `data.json`.
 
-When `serverName` is `DB2SIM`, tests start an embedded simulator and supply
-their own SQL-to-result mappings inline — they do not read `default_data.json`
-or `data.json`.
+Tests that target a real DB2 or SQL Server read optional connection details from
+`tests.db2` and `tests.sqlServer`. Omit either section (or leave `tests` empty)
+and tests for that target are skipped.
 
 ```bash
 dotnet test tests/Db2Simulator.Tests
 ```
 
-Tests are skipped automatically when `config.json` is missing or the configured
-DB2 endpoint is unreachable. On Linux the IBM `clidriver` native libraries
-bundled with the test project are configured automatically; a Db2Connect
-license may be required for non-trial deployments.
+Tests are also skipped when `config.json` is missing or a configured endpoint is
+unreachable. On Linux the IBM `clidriver` native libraries bundled with the test
+project are configured automatically; a Db2Connect license may be required for
+non-trial deployments.
 
 ## Using it from SQL Server
 
