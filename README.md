@@ -205,24 +205,25 @@ Use JSON `null` for a NULL cell.
 ## Testing
 
 Copy `config/config.json.example` to `config/config.json` before running tests.
-Simulator-focused tests start an embedded simulator using the top-level `server`
-and `auth` settings and supply their own SQL-to-result mappings inline — they do
-not read `default_data.json` or `data.json`.
+The suite is an ordered integration pipeline against the **real** SQL Server
+(`tests.sqlServer`) and the **real** DB2 (`tests.db2`) from `config.json`. Test
+classes and methods run strictly in numeric order:
 
-Tests that target a real DB2 or SQL Server read optional connection details from
-`tests.db2` and `tests.sqlServer`. Omit either section (or leave `tests` empty)
-and tests for that target are skipped. OPENQUERY tests connect to SQL Server,
-verify that the Microsoft `DB2OLEDB` provider is installed, create a temporary
-linked server from `tests.db2`, and drop it when the test session ends.
+| Step | File | What it does |
+|------|------|--------------|
+| 1 | `Test01_Connectivity.cs` | Verifies the real SQL Server and the real DB2 are reachable and answer simple queries. |
+| 2 | `Test02_Setup.cs` | Creates the `DB2SIM_TESTLINK` linked server in SQL Server (pointing at the real DB2 via `DB2OLEDB`), the `DB2SIM_SAMPLE` test table with data in DB2, and the `DB2SIM_TESTS` mirror database with the same data in SQL Server. Setup is idempotent (drop/recreate) and the objects are left in place. |
+| 3 | `Test03_QueryComparison.cs` | Runs the same DB2 SQL through `OPENQUERY` on the linked server and directly against DB2 with the IBM driver, then compares the result sets cell by cell (all column types, NULLs, filters, aggregates, scalar functions, and the SQL Server mirror copy). |
 
 ```bash
 dotnet test tests/Db2Simulator.Tests
 ```
 
-Tests are also skipped when `config.json` is missing or a configured endpoint is
-unreachable. On Linux the IBM `clidriver` native libraries bundled with the test
-project are configured automatically; a Db2Connect license may be required for
-non-trial deployments.
+Tests are skipped when `config.json` is missing or the relevant `tests.*`
+section is omitted; anything else (an unreachable server, a missing `DB2OLEDB`
+provider, a result mismatch) is a failure. On Linux the IBM `clidriver` native
+libraries bundled with the test project are loaded automatically; a Db2Connect
+license may be required for non-trial deployments.
 
 ## Using it from SQL Server
 
