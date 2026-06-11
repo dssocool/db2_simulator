@@ -37,8 +37,7 @@
       "port": 1433,
       "database": "master",
       "user": "sa",
-      "password": "YourStrongPassword123",
-      "linkedServer": "DB2LS"
+      "password": "YourStrongPassword123"
     }
   }
 }

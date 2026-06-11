@@ -192,6 +192,4 @@ public class DatabaseConnectionConfig
 
 public sealed class SqlServerConnectionConfig : DatabaseConnectionConfig
 {
-    /// <summary>Linked server name for OPENQUERY-style tests.</summary>
-    public string LinkedServer { get; set; } = "";
 }

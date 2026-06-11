@@ -14,6 +14,7 @@ internal sealed class Db2TestSession : IDisposable
     private readonly EmbeddedSimulatorHost? _embeddedHost;
 
     public string? SkipReason { get; }
+    public int? SimulatorPort => _embeddedHost?.Port;
 
     private Db2TestSession(SimulatorConfig config, string connectionString, EmbeddedSimulatorHost? embeddedHost, string? skipReason)
     {

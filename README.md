@@ -107,8 +107,7 @@ project). Add your own mappings in `config/data.json` (gitignored). Copy
       "port": 1433,
       "database": "master",
       "user": "sa",
-      "password": "YourStrongPassword123",
-      "linkedServer": "DB2LS"      // linked server name for OPENQUERY tests
+      "password": "YourStrongPassword123"
     }
   }
 }
@@ -210,7 +209,9 @@ not read `default_data.json` or `data.json`.
 
 Tests that target a real DB2 or SQL Server read optional connection details from
 `tests.db2` and `tests.sqlServer`. Omit either section (or leave `tests` empty)
-and tests for that target are skipped.
+and tests for that target are skipped. OPENQUERY tests connect to SQL Server,
+verify that the Microsoft `DB2OLEDB` provider is installed, create a temporary
+linked server from `tests.db2`, and drop it when the test session ends.
 
 ```bash
 dotnet test tests/Db2Simulator.Tests
