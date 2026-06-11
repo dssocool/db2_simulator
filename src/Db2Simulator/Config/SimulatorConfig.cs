@@ -3,15 +3,20 @@ using System.Text.Json.Serialization;
 
 namespace Db2Simulator.Config;
 
-/// <summary>Root configuration loaded from the JSON mapping file.</summary>
+/// <summary>Root configuration loaded from config.json.</summary>
 public sealed class SimulatorConfig
 {
     public ServerConfig Server { get; set; } = new();
     public AuthConfig Auth { get; set; } = new();
     public TraceConfig Trace { get; set; } = new();
     public MatchingConfig Matching { get; set; } = new();
-    public List<MappingConfig> Mappings { get; set; } = new();
+    /// <summary>Populated from default_data.json at startup; tests may set inline.</summary>
+    [JsonIgnore]
     public DefaultResponseConfig? DefaultResponse { get; set; }
+
+    /// <summary>Populated from data files at startup; tests may set inline.</summary>
+    [JsonIgnore]
+    public List<MappingConfig> Mappings { get; set; } = new();
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -34,8 +39,6 @@ public sealed class SimulatorConfig
     {
         if (Server.Port is <= 0 or > 65535)
             throw new InvalidOperationException($"Invalid server port: {Server.Port}");
-        foreach (var m in Mappings)
-            m.Compile();
     }
 }
 

@@ -2,12 +2,26 @@ using Db2Simulator.Config;
 using Db2Simulator.Protocol;
 
 string configPath = ResolveConfigPath(args);
+string defaultDataPath = ResolveDefaultDataPath(configPath);
+string? userDataPath = ResolveUserDataPath(configPath);
 Console.WriteLine($"Loading configuration: {configPath}");
+Console.WriteLine($"Loading default mappings: {defaultDataPath}");
+if (userDataPath is not null)
+    Console.WriteLine($"Loading user mappings: {userDataPath}");
 
 SimulatorConfig config;
 try
 {
     config = SimulatorConfig.Load(configPath);
+    SimulatorData defaultData = SimulatorData.Load(defaultDataPath);
+    config.DefaultResponse = defaultData.DefaultResponse;
+    config.Mappings = defaultData.Mappings;
+
+    if (userDataPath is not null)
+    {
+        SimulatorData userData = SimulatorData.Load(userDataPath);
+        config.Mappings.AddRange(userData.Mappings);
+    }
 }
 catch (Exception ex)
 {
@@ -58,4 +72,40 @@ static string ResolveConfigPath(string[] args)
         if (File.Exists(c))
             return c;
     return candidates[0];
+}
+
+static string ResolveDefaultDataPath(string configPath)
+{
+    string? dir = Path.GetDirectoryName(Path.GetFullPath(configPath));
+    if (string.IsNullOrEmpty(dir))
+        dir = Directory.GetCurrentDirectory();
+
+    string[] candidates =
+    {
+        Path.Combine(dir, "default_data.json"),
+        Path.Combine(AppContext.BaseDirectory, "config", "default_data.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "config", "default_data.json"),
+    };
+    foreach (string c in candidates)
+        if (File.Exists(c))
+            return c;
+    return candidates[0];
+}
+
+static string? ResolveUserDataPath(string configPath)
+{
+    string? dir = Path.GetDirectoryName(Path.GetFullPath(configPath));
+    if (string.IsNullOrEmpty(dir))
+        dir = Directory.GetCurrentDirectory();
+
+    string[] candidates =
+    {
+        Path.Combine(dir, "data.json"),
+        Path.Combine(AppContext.BaseDirectory, "config", "data.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "config", "data.json"),
+    };
+    foreach (string c in candidates)
+        if (File.Exists(c))
+            return c;
+    return null;
 }

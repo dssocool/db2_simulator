@@ -5,3 +5,4 @@ obj/
 .refs/
 __pycache__
 config/config.json
+config/data.json

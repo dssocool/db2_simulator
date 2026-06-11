@@ -27,6 +27,12 @@
     <None Include="..\..\config\config.json.example" Link="config\config.json.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\..\config\default_data.json" Link="config\default_data.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\config\data.json" Link="config\data.json" Condition="Exists('..\..\config\data.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,23 @@
+{
+  "defaultResponse": {
+    "error": {
+      "sqlcode": -204,
+      "sqlstate": "42704",
+      "message": "DB2SIM: no mapping configured for the requested statement"
+    }
+  },
+  "mappings": [
+    {
+      "sql": "SELECT CURRENT TIMESTAMP AS TS FROM SYSIBM.SYSDUMMY1",
+      "match": "exact",
+      "result": {
+        "columns": [
+          { "name": "TS", "type": "TIMESTAMP", "nullable": true }
+        ],
+        "rows": [
+          ["2026-06-10-14.30.00.000000"]
+        ]
+      }
+    }
+  ]
+}

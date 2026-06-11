@@ -11,7 +11,7 @@ This lets you point a SQL Server linked server (that normally targets DB2) at th
 simulator instead, and get back canned results for known statements.
 
 ```
-SQL Server  ──DB2OLEDB / DRDA──▶  db2sim (this project)  ──▶  config.json
+SQL Server  ──DB2OLEDB / DRDA──▶  db2sim (this project)  ──▶  config.json + default_data.json [+ data.json]
 ```
 
 ## What it implements
@@ -44,7 +44,10 @@ dotnet run --project src/Db2Simulator -- config/config.json
 
 The configuration path is optional; if omitted the server looks for
 `config/config.json` next to the binary and in the current directory. You can
-also pass `--config <path>`.
+also pass `--config <path>`. Built-in SQL mappings and the default unmapped
+response are always loaded from `default_data.json` (next to the config file or
+under `config/`). Optional user mappings are merged from `data.json` when that
+file exists.
 
 On start it prints:
 
@@ -55,7 +58,14 @@ DB2 simulator listening on 0.0.0.0:50000 (database=TESTDB, typedef=QTDSQLX86)
 The server binds `0.0.0.0` so it is reachable from the Windows host whether SQL
 Server reaches WSL2 via `localhost` forwarding or the WSL IP.
 
-## Configuration (`config/config.json`)
+## Configuration
+
+Server settings live in `config/config.json`. Built-in mappings and the
+default unmapped response live in `config/default_data.json` (shipped with the
+project). Add your own mappings in `config/data.json` (gitignored). Copy
+`config/config.json.example` to create your local server settings file.
+
+### Server settings (`config/config.json`)
 
 ```jsonc
 {
@@ -83,20 +93,53 @@ Server reaches WSL2 via `localhost` forwarding or the WSL IP.
     "ignoreCase": true,
     "collapseWhitespace": true,      // treat runs of whitespace as one space
     "trimTrailingSemicolon": true
+  }
+}
+```
+
+### Built-in data (`config/default_data.json`)
+
+Always loaded at startup. Contains the default unmapped response and the
+`CURRENT TIMESTAMP` probe mapping used by DB2OLEDB during connection setup.
+
+```jsonc
+{
+  "defaultResponse": {
+    "error": { "sqlcode": -204, "sqlstate": "42704", "message": "..." }
   },
   "mappings": [
     {
       "sql": "SELECT CURRENT TIMESTAMP AS TS FROM SYSIBM.SYSDUMMY1",
-      "match": "exact",              // "exact" or "regex"
+      "match": "exact",
       "result": {
         "columns": [ { "name": "TS", "type": "TIMESTAMP", "nullable": true } ],
         "rows": [ ["2026-06-10-14.30.00.000000"] ]
       }
     }
-  ],
-  "defaultResponse": {
-    "error": { "sqlcode": -204, "sqlstate": "42704", "message": "..." }
-  }
+  ]
+}
+```
+
+### User mappings (`config/data.json`)
+
+Optional. Create this file to add your own SQL-to-result mappings; entries are
+merged after the built-in mappings from `default_data.json`.
+
+```jsonc
+{
+  "mappings": [
+    {
+      "sql": "^SELECT \\* FROM DEMO\\b",
+      "match": "regex",
+      "result": {
+        "columns": [
+          { "name": "ID", "type": "INTEGER", "nullable": false },
+          { "name": "NAME", "type": "VARCHAR", "length": 50, "nullable": true }
+        ],
+        "rows": [ [1, "Widget"], [2, "Gadget"] ]
+      }
+    }
+  ]
 }
 ```
 
@@ -114,8 +157,9 @@ For `exact` matches, both the configured and incoming SQL are normalized
 `matching` settings. For `regex`, the `sql` field is a .NET regular expression
 matched case-insensitively against the statement.
 
-`defaultResponse` is returned for any statement that matches no mapping; if it is
-omitted, unmapped statements return SQLCODE `-204` / SQLSTATE `42704`.
+`defaultResponse` in `default_data.json` is returned for any statement that
+matches no mapping; if it is omitted, unmapped statements return SQLCODE `-204` /
+SQLSTATE `42704`.
 
 ### Column definition
 
@@ -143,8 +187,8 @@ Integration tests read connection details from `config/config.json`
 set the host/port to your DB2 server (use any `serverName` other than `DB2SIM`).
 
 When `serverName` is `DB2SIM`, tests start an embedded simulator and supply
-their own SQL-to-result mappings inline — they do not use the `mappings` section
-of `config.json`.
+their own SQL-to-result mappings inline — they do not read `default_data.json`
+or `data.json`.
 
 ```bash
 dotnet test tests/Db2Simulator.Tests

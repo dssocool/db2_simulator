@@ -23,40 +23,5 @@
     "ignoreCase": true,
     "collapseWhitespace": true,
     "trimTrailingSemicolon": true
-  },
-  "mappings": [
-    {
-      "sql": "SELECT CURRENT TIMESTAMP AS TS FROM SYSIBM.SYSDUMMY1",
-      "match": "exact",
-      "result": {
-        "columns": [
-          { "name": "TS", "type": "TIMESTAMP", "nullable": true }
-        ],
-        "rows": [
-          ["2026-06-10-14.30.00.000000"]
-        ]
-      }
-    },
-    {
-      "sql": "^SELECT \\* FROM DEMO\\b",
-      "match": "regex",
-      "result": {
-        "columns": [
-          { "name": "ID", "type": "INTEGER", "nullable": false },
-          { "name": "NAME", "type": "VARCHAR", "length": 50, "nullable": true }
-        ],
-        "rows": [
-          [1, "Widget"],
-          [2, "Gadget"]
-        ]
-      }
-    }
-  ],
-  "defaultResponse": {
-    "error": {
-      "sqlcode": -204,
-      "sqlstate": "42704",
-      "message": "DB2SIM: no mapping configured for the requested statement"
-    }
   }
 }
