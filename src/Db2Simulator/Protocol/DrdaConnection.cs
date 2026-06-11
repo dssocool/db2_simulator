@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Net.Sockets;
+using System.Text;
 using Db2Simulator.Config;
 using Db2Simulator.Sql;
 
@@ -25,6 +26,7 @@ internal sealed class DrdaConnection
     private bool _unicodeNegotiated;
     private string _currentSql = "";
     private StatementResponse? _prepared;
+    private bool _useCompactSqldard;
 
     public DrdaConnection(Stream stream, SimulatorConfig config, TraceLogger log)
     {
@@ -264,6 +266,9 @@ internal sealed class DrdaConnection
     {
         foreach ((int cp, byte[] value) in DssReader.ParseParameters(unit.Payload))
         {
+            if (LooksLikeOleDbClient(cp, value))
+                _useCompactSqldard = true;
+
             if (cp != CodePoints.TYPDEFOVR)
                 continue;
             foreach ((int icp, byte[] ivalue) in DssReader.ParseParameters(value))
@@ -284,7 +289,18 @@ internal sealed class DrdaConnection
         d.Scalar2(CodePoints.CCSIDMBC, Ccsid.Utf8);
         d.End();
         Reply(unit, d.End().ToArray());
-        _log.Command($"ACCRDB database accessed (PRDID={_config.Server.ProductId}, {_config.Server.TypeDefName})");
+        _log.Command($"ACCRDB database accessed (PRDID={_config.Server.ProductId}, {_config.Server.TypeDefName}, compactSQLDARD={_useCompactSqldard})");
+    }
+
+    private static bool LooksLikeOleDbClient(int codePoint, byte[] value)
+    {
+        if (value.Length == 0)
+            return false;
+
+        string text = Encoding.ASCII.GetString(value);
+        return text.Contains("qlservr", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("MSOLEDBSQL", StringComparison.OrdinalIgnoreCase)
+            || text.Contains("MSDRDA", StringComparison.OrdinalIgnoreCase);
     }
 
     // ---------------- SQL ----------------
@@ -304,7 +320,7 @@ internal sealed class DrdaConnection
                 break;
             case ResultSetResponse rs when returnSqlda:
                 _log.Command($"PREPARE -> SQLDARD ({rs.Columns.Count} cols)");
-                ReplyObject(unit, _encoder.BuildSqldard(rs.Columns, _config.Server.Database));
+                ReplyObject(unit, _encoder.BuildSqldard(rs.Columns, _config.Server.Database, _useCompactSqldard));
                 break;
             default:
                 _log.Command("PREPARE -> SQLCARD success");
@@ -322,7 +338,7 @@ internal sealed class DrdaConnection
                 ReplyObject(unit, _encoder.BuildSqlcardError(e.SqlCode, e.SqlState, e.Message));
                 break;
             case ResultSetResponse rs:
-                ReplyObject(unit, _encoder.BuildSqldard(rs.Columns, _config.Server.Database));
+                ReplyObject(unit, _encoder.BuildSqldard(rs.Columns, _config.Server.Database, _useCompactSqldard));
                 break;
             default:
                 ReplyObject(unit, _encoder.BuildSqlcardSuccess());
@@ -337,9 +353,10 @@ internal sealed class DrdaConnection
         {
             _log.Command($"OPNQRY: {rs.Columns.Count} cols, {rs.Rows.Count} rows");
             Reply(unit, BuildOpnqryrm());
-            ReplyObject(unit, _encoder.BuildQrydsc(rs.Columns));
+            ReplyObject(unit, _encoder.BuildQrydsc(rs.Columns, _useCompactSqldard));
             ReplyObject(unit, _encoder.BuildQrydta(rs.Columns, rs.Rows));
             Reply(unit, BuildEndqryrm());
+            ReplyObject(unit, _encoder.BuildSqlcardEndOfData(rs.Rows.Count, _config.Server.Database));
         }
         else if (resp is ErrorResponse e)
         {
@@ -418,6 +435,7 @@ internal sealed class DrdaConnection
     {
         var d = new Ddm(_littleData).Begin(CodePoints.ENDQRYRM);
         d.Scalar2(CodePoints.SVRCOD, CodePoints.SVRCOD_WARNING);
+        d.ScalarString(CodePoints.RDBNAM, PadRdbnam(_config.Server.Database));
         return d.End().ToArray();
     }
 

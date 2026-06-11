@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Text;
 using Db2Simulator.Protocol;
@@ -37,6 +38,13 @@ internal sealed class ResultEncoder
         return d.End().ToArray();
     }
 
+    public byte[] BuildSqlcardEndOfData(long rowCount, string database)
+    {
+        var d = new Ddm(_littleData).Begin(CodePoints.SQLCARD);
+        WriteSqlcaEof(d, rowCount, database);
+        return d.End().ToArray();
+    }
+
     public byte[] BuildSqlcardError(int sqlcode, string sqlstate, string message)
     {
         var d = new Ddm(_littleData).Begin(CodePoints.SQLCARD);
@@ -53,30 +61,36 @@ internal sealed class ResultEncoder
 
     // ---------------- SQLDARD (describe output) ----------------
 
-    public byte[] BuildSqldard(IReadOnlyList<ResultColumn> columns, string database)
+    public byte[] BuildSqldard(IReadOnlyList<ResultColumn> columns, string database, bool compact = false)
     {
         var d = new Ddm(_littleData).Begin(CodePoints.SQLDARD);
 
-        // DB2OLEDB (and pydrda's db2 parser) expect the DB2 LUW describe layout:
-        // a 79-byte SQLCAGRP, a separator 0xFF, a 6-byte SQLNUMROW prefix, then
-        // SQLDAGRP entries that carry the alias in SQLLABEL (SQLNAME is empty).
-        WriteSqlcaForDescribe(d, database);
+        // DB2 LUW describe: 79-byte SQLCAGRP, 0xFF separator, SQLNUMROW prefix, SQLDAGRP chunks.
+        // DB2OLEDB (SQL Server OPENQUERY) uses a shorter per-column label layout than pydrda/DRDA tools.
+        WriteSqlcaForDescribe(d, database, columns.Count);
         d.WriteByte(0xFF);
         d.WriteI16Data(columns.Count);
         d.WriteI32Data(0);
 
-        foreach (ResultColumn c in columns)
-            WriteSqldaGroupOleDb(d, c);
+        for (int i = 0; i < columns.Count; i++)
+            d.WriteBytes(BuildSqldaColumnChunk(columns[i], i, compact));
 
         return d.End().ToArray();
     }
 
     // 79-byte SQLCAGRP prefix captured from DB2 LUW; only PRDID and RDBNAM vary.
-    private void WriteSqlcaForDescribe(Ddm d, string database)
+    private void WriteSqlcaForDescribe(Ddm d, string database, int columnCount)
     {
         Span<byte> header = stackalloc byte[79];
         SqlcaDescribeTemplate().CopyTo(header);
         _sqlerrproc.CopyTo(header[10..18]);
+
+        if (columnCount >= 1)
+        {
+            // DB2 LUW describe uses a fixed SQLCAXGRP tail (0x0E at bytes 28-31).
+            BinaryPrimitives.WriteInt32BigEndian(header[28..32], 14);
+            header[32..40].Clear();
+        }
 
         byte[] rdb = Encoding.ASCII.GetBytes(PadRdbnam(database));
         header[54] = 0;
@@ -96,22 +110,107 @@ internal sealed class ResultEncoder
         0x00, 0x00, 0x00, 0x00, 0xFF,
     ];
 
-    private void WriteSqldaGroupOleDb(Ddm d, ResultColumn c)
+    /// <summary>
+    /// Builds one SQLDAGRP chunk exactly as consumed by pydrda/DB2OLEDB for DB2 LUW describe.
+    /// Layout captured from a live DB2 LUW server (OPENQUERY with long column aliases).
+    /// </summary>
+    private byte[] BuildSqldaColumnChunk(ResultColumn c, int columnIndex, bool compact)
     {
-        int sqlType = c.Type.SqlType() & 0xFFFE;
-        int ccsid = UsesDescribeCcsid(c.Type) ? Ccsid.Utf8 : 0;
+        var buf = new List<byte>(64);
         byte[] label = Encoding.UTF8.GetBytes(c.Name);
 
-        d.WriteI16Data(SqlPrecisionField(c));
-        d.WriteI16Data(c.Type == SimColumnType.Decimal ? c.Scale : 0);
-        d.WriteI32Data(0);
-        d.WriteI16Data(sqlType);
-        d.WriteU16BE(ccsid);
-        d.WriteBytes(new byte[14]);
-        d.WriteByte(label.Length);
-        d.WriteBytes(label);
-        d.WriteBytes(new byte[12 - label.Length]);
-        d.WriteBytes([0xFF, 0xFF, 0xFF]);
+        if (compact)
+            WriteOleDbCompactColumnHeader(buf, c, columnIndex);
+        else
+            WriteExtendedColumnHeader(buf, c, columnIndex);
+
+        if (compact)
+        {
+            buf.AddRange(new byte[12]);
+            buf.Add((byte)label.Length);
+            buf.AddRange(label);
+            buf.AddRange(new byte[10]);
+            buf.AddRange([0xFF, 0xFF]);
+            return buf.ToArray();
+        }
+
+        if (c.Type == SimColumnType.Decimal)
+        {
+            buf.AddRange(new byte[14]);
+            buf.Add((byte)label.Length);
+            buf.AddRange(label);
+            buf.AddRange(new byte[Math.Max(0, 26 - label.Length)]);
+        }
+        else
+        {
+            buf.AddRange(new byte[8]);
+            buf.AddRange([0x08, 0x00, 0x00, 0x00, 0x00, 0x00]);
+            buf.Add((byte)label.Length);
+            buf.AddRange(label);
+            buf.AddRange(new byte[10]);
+        }
+
+        buf.AddRange([0xFF, 0xFF, 0xFF]);
+        return buf.ToArray();
+    }
+
+    private void WriteExtendedColumnHeader(List<byte> buf, ResultColumn c, int columnIndex)
+    {
+        if (columnIndex > 0 && c.Type is not SimColumnType.Decimal)
+            buf.AddRange(new byte[4]);
+
+        AppendI16Data(buf, SqlPrecisionField(c));
+        AppendI16Data(buf, c.Type == SimColumnType.Decimal ? c.Scale : 0);
+        buf.AddRange(new byte[c.Type == SimColumnType.Decimal ? 8 : 4]);
+        AppendI16Data(buf, c.Type.SqlType());
+        int ccsid = UsesDescribeCcsid(c.Type) ? Ccsid.Utf8 : 0;
+        buf.Add((byte)(ccsid >> 8));
+        buf.Add((byte)ccsid);
+    }
+
+    private void WriteOleDbCompactColumnHeader(List<byte> buf, ResultColumn c, int columnIndex)
+    {
+        int ccsid = UsesDescribeCcsid(c.Type) ? Ccsid.Utf8 : 0;
+        if (columnIndex > 0 && c.Type is not SimColumnType.Decimal)
+        {
+            buf.AddRange(new byte[4]);
+            AppendI32Data(buf, SqlPrecisionField(c));
+            AppendI32Data(buf, 0);
+        }
+        else
+        {
+            AppendI16Data(buf, SqlPrecisionField(c));
+            AppendI16Data(buf, c.Type == SimColumnType.Decimal ? c.Scale : 0);
+            buf.AddRange(new byte[c.Type == SimColumnType.Decimal ? 8 : 4]);
+        }
+
+        AppendI16Data(buf, c.Type.SqlType());
+        buf.Add((byte)(ccsid >> 8));
+        buf.Add((byte)ccsid);
+    }
+
+    private void AppendI32Data(List<byte> buf, int value)
+    {
+        Span<byte> s = stackalloc byte[4];
+        if (_littleData)
+            BinaryPrimitives.WriteInt32LittleEndian(s, value);
+        else
+            BinaryPrimitives.WriteInt32BigEndian(s, value);
+        buf.Add(s[0]);
+        buf.Add(s[1]);
+        buf.Add(s[2]);
+        buf.Add(s[3]);
+    }
+
+    private void AppendI16Data(List<byte> buf, int value)
+    {
+        Span<byte> s = stackalloc byte[2];
+        if (_littleData)
+            BinaryPrimitives.WriteInt16LittleEndian(s, (short)value);
+        else
+            BinaryPrimitives.WriteInt16BigEndian(s, (short)value);
+        buf.Add(s[0]);
+        buf.Add(s[1]);
     }
 
     private static int SqlPrecisionField(ResultColumn c) => c.Type switch
@@ -132,9 +231,28 @@ internal sealed class ResultEncoder
 
     private static string PadRdbnam(string name) => name.Length >= 18 ? name : name.PadRight(18);
 
+    private void WriteSqlcaEof(Ddm d, long rowCount, string database)
+    {
+        d.WriteByte(0x00);
+        d.WriteI32Data(100);
+        d.WriteBytes(Fixed5("02000"));
+        d.WriteBytes(Encoding.ASCII.GetBytes("SQLRI01F"));
+        d.WriteByte(0x00);
+        d.WriteI32Data(0x00000480);
+        d.WriteI32Data(1);
+        d.WriteI32Data(0);
+        d.WriteI32Data(0);
+        d.WriteBytes(new byte[8]);
+        d.WriteBytes(Encoding.ASCII.GetBytes("           "));
+        byte[] rdb = Encoding.ASCII.GetBytes(PadRdbnam(database));
+        d.WriteU16BE(rdb.Length).WriteBytes(rdb);
+        d.WriteU16BE(0).WriteU16BE(0);
+        d.WriteByte(0xFF);
+    }
+
     // ---------------- QRYDSC (answer set descriptor) ----------------
 
-    public byte[] BuildQrydsc(IReadOnlyList<ResultColumn> columns)
+    public byte[] BuildQrydsc(IReadOnlyList<ResultColumn> columns, bool oleDbClient = false)
     {
         var d = new Ddm(_littleData).Begin(CodePoints.QRYDSC);
 
@@ -145,7 +263,8 @@ internal sealed class ResultEncoder
 
         foreach (ResultColumn c in columns)
         {
-            d.WriteByte(c.Type.DrdaType() & 0xFE);
+            int drdaType = c.Type == SimColumnType.Char ? c.Type.DrdaType() & 0xFD : c.Type.DrdaType();
+            d.WriteByte(drdaType);
             if (c.Type == SimColumnType.Decimal)
             {
                 d.WriteByte(c.Precision);
@@ -175,10 +294,6 @@ internal sealed class ResultEncoder
                 WriteValue(d, columns[i], i < row.Length ? row[i] : null);
         }
 
-        // End-of-data marker: full SQLCA with SQLSTATE 02000 / SQLCODE +100.
-        WriteSqlcaFull(d, 100, "02000", null, rows.Count, 0);
-        d.WriteByte(0xFF); // trailing data group: none
-
         return d.End().ToArray();
     }
 
@@ -206,6 +321,12 @@ internal sealed class ResultEncoder
         switch (c.Type)
         {
             case SimColumnType.Char:
+            {
+                // QRYDSC advertises fixed-length NVARMIX (0x3E); data is padded CHAR bytes.
+                string s = PadFixed(Convert.ToString(value, CultureInfo.InvariantCulture) ?? "", c.Length);
+                d.WriteBytes(Encoding.UTF8.GetBytes(s));
+                break;
+            }
             case SimColumnType.Varchar:
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(Convert.ToString(value, CultureInfo.InvariantCulture) ?? "");
