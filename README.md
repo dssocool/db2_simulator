@@ -11,7 +11,7 @@ This lets you point a SQL Server linked server (that normally targets DB2) at th
 simulator instead, and get back canned results for known statements.
 
 ```
-SQL Server  ──DB2OLEDB / DRDA──▶  db2sim (this project)  ──▶  mappings.json
+SQL Server  ──DB2OLEDB / DRDA──▶  db2sim (this project)  ──▶  config.json
 ```
 
 ## What it implements
@@ -33,17 +33,17 @@ SQL Server  ──DB2OLEDB / DRDA──▶  db2sim (this project)  ──▶  ma
 ## Requirements
 
 - .NET SDK 10
-- (optional) Python 3 + [`pydrda`](https://pypi.org/project/pydrda/) for local testing
+- IBM Db2 .NET driver (`Net.IBM.Data.Db2` / `Net.IBM.Data.Db2-lnx`) for integration tests
 
 ## Build & run
 
 ```bash
 dotnet build
-dotnet run --project src/Db2Simulator -- config/mappings.json
+dotnet run --project src/Db2Simulator -- config/config.json
 ```
 
 The configuration path is optional; if omitted the server looks for
-`config/mappings.json` next to the binary and in the current directory. You can
+`config/config.json` next to the binary and in the current directory. You can
 also pass `--config <path>`.
 
 On start it prints:
@@ -55,7 +55,7 @@ DB2 simulator listening on 0.0.0.0:50000 (database=TESTDB, typedef=QTDSQLX86)
 The server binds `0.0.0.0` so it is reachable from the Windows host whether SQL
 Server reaches WSL2 via `localhost` forwarding or the WSL IP.
 
-## Configuration (`config/mappings.json`)
+## Configuration (`config/config.json`)
 
 ```jsonc
 {
@@ -135,23 +135,25 @@ omitted, unmapped statements return SQLCODE `-204` / SQLSTATE `42704`.
 
 Use JSON `null` for a NULL cell.
 
-## Testing locally with pydrda
+## Testing
+
+Integration tests read connection details from `config/config.json`
+(`server.host`, `server.port`, `server.database`, and the first entry in
+`auth.users`). Copy `config/config.json.example` to `config/config.json` and
+set the host/port to your DB2 server (use any `serverName` other than `DB2SIM`).
+
+When `serverName` is `DB2SIM`, tests start an embedded simulator and supply
+their own SQL-to-result mappings inline — they do not use the `mappings` section
+of `config.json`.
 
 ```bash
-python3 -m venv .venv && . .venv/bin/activate
-pip install pydrda
-python3 tests/smoke_test.py all
+dotnet test tests/Db2Simulator.Tests
 ```
 
-Expected output:
-
-```
-timestamp rows: [(datetime.datetime(2026, 6, 10, 14, 30),)]
-demo rows: [(1, 'Widget', Decimal('19.99'), ...), (2, 'Gadget', ...), (3, None, None, None)]
-bad password rejected as expected: OperationalError -1542 ...
-unmapped query raised as expected: OperationalError -204 ...
-DONE
-```
+Tests are skipped automatically when `config.json` is missing or the configured
+DB2 endpoint is unreachable. On Linux the IBM `clidriver` native libraries
+bundled with the test project are configured automatically; a Db2Connect
+license may be required for non-trial deployments.
 
 ## Using it from SQL Server
 

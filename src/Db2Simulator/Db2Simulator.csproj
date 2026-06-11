@@ -17,10 +17,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\config\mappings.json" Link="config\mappings.json" Condition="Exists('..\..\config\mappings.json')">
+    <InternalsVisibleTo Include="Db2Simulator.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\config\config.json" Link="config\config.json" Condition="Exists('..\..\config\config.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\config\mappings.json.example" Link="config\mappings.json.example">
+    <None Include="..\..\config\config.json.example" Link="config\config.json.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

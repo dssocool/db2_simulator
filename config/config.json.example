@@ -1,7 +1,7 @@
 {
   "server": {
     "host": "0.0.0.0",
-    "port": 50001,
+    "port": 50000,
     "database": "TESTDB",
     "serverClassName": "QDB2/LINUXX8664",
     "serverName": "DB2SIM",
@@ -17,7 +17,7 @@
   },
   "trace": {
     "logCommands": true,
-    "hexDump": true
+    "hexDump": false
   },
   "matching": {
     "ignoreCase": true,
@@ -38,43 +38,16 @@
       }
     },
     {
-      "sql": "SELECT 1 FROM SYSIBM.SYSDUMMY1",
-      "match": "exact",
-      "result": {
-        "columns": [
-          { "name": "1", "type": "INTEGER", "nullable": false }
-        ],
-        "rows": [
-          [1]
-        ]
-      }
-    },
-    {
-      "sql": "VALUES CURRENT SCHEMA",
-      "match": "exact",
-      "result": {
-        "columns": [
-          { "name": "1", "type": "VARCHAR", "length": 128, "nullable": false }
-        ],
-        "rows": [
-          ["DB2INST1"]
-        ]
-      }
-    },
-    {
       "sql": "^SELECT \\* FROM DEMO\\b",
       "match": "regex",
       "result": {
         "columns": [
           { "name": "ID", "type": "INTEGER", "nullable": false },
-          { "name": "NAME", "type": "VARCHAR", "length": 50, "nullable": true },
-          { "name": "PRICE", "type": "DECIMAL", "precision": 9, "scale": 2, "nullable": true },
-          { "name": "CREATED", "type": "TIMESTAMP", "nullable": true }
+          { "name": "NAME", "type": "VARCHAR", "length": 50, "nullable": true }
         ],
         "rows": [
-          [1, "Widget", "19.99", "2026-01-15-09.00.00.000000"],
-          [2, "Gadget", "5.50", "2026-02-20-10.30.00.000000"],
-          [3, null, null, null]
+          [1, "Widget"],
+          [2, "Gadget"]
         ]
       }
     }

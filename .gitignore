@@ -4,4 +4,4 @@ obj/
 *.user
 .refs/
 __pycache__
-config/mappings.json
+config/config.json

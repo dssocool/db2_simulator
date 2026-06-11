@@ -48,11 +48,11 @@ static string ResolveConfigPath(string[] args)
 
     string[] candidates =
     {
-        Path.Combine(AppContext.BaseDirectory, "config", "mappings.json"),
-        Path.Combine(Directory.GetCurrentDirectory(), "config", "mappings.json"),
-        Path.Combine(Directory.GetCurrentDirectory(), "mappings.json"),
-        Path.Combine(AppContext.BaseDirectory, "config", "mappings.json.example"),
-        Path.Combine(Directory.GetCurrentDirectory(), "config", "mappings.json.example"),
+        Path.Combine(AppContext.BaseDirectory, "config", "config.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "config", "config.json"),
+        Path.Combine(Directory.GetCurrentDirectory(), "config.json"),
+        Path.Combine(AppContext.BaseDirectory, "config", "config.json.example"),
+        Path.Combine(Directory.GetCurrentDirectory(), "config", "config.json.example"),
     };
     foreach (string c in candidates)
         if (File.Exists(c))
