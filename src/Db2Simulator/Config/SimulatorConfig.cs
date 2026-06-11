@@ -192,4 +192,16 @@ public class DatabaseConnectionConfig
 
 public sealed class SqlServerConnectionConfig : DatabaseConnectionConfig
 {
+    /// <summary>
+    /// SQL Server data source for SqlClient. When <see cref="DatabaseConnectionConfig.Port"/>
+    /// is set, uses <c>host,port</c>. Otherwise uses <see cref="DatabaseConnectionConfig.Host"/>
+    /// as-is so named instances (e.g. <c>localhost\SQLEXPRESS</c>) resolve via SQL Browser.
+    /// </summary>
+    public string DataSource => Port > 0 ? $"{Host},{Port}" : Host;
+
+    public new bool IsConfigured =>
+        !string.IsNullOrWhiteSpace(Host)
+        && !string.IsNullOrWhiteSpace(Database)
+        && !string.IsNullOrWhiteSpace(User)
+        && Port is >= 0 and <= 65535;
 }

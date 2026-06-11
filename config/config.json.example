@@ -33,10 +33,9 @@
       "password": "YourStrongPassword123"
     },
     "sqlServer": {
-      "host": "127.0.0.1",
-      "port": 1433,
+      "host": "localhost\\SQLEXPRESS",
       "database": "master",
-      "user": "sa",
+      "user": "dev_user",
       "password": "YourStrongPassword123"
     }
   }

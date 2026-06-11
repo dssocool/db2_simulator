@@ -103,10 +103,9 @@ project). Add your own mappings in `config/data.json` (gitignored). Copy
       "password": "YourStrongPassword123"
     },
     "sqlServer": {                 // optional — omit to skip SQL Server tests
-      "host": "127.0.0.1",
-      "port": 1433,
+      "host": "localhost\\SQLEXPRESS", // named instance; omit port to use SQL Browser
       "database": "master",
-      "user": "sa",
+      "user": "dev_user",
       "password": "YourStrongPassword123"
     }
   }
@@ -116,7 +115,10 @@ project). Add your own mappings in `config/data.json` (gitignored). Copy
 The top-level `server`, `auth`, `trace`, and `matching` sections configure the simulator
 process (`dotnet run`). The optional `tests` section holds connection details for
 integration tests against real databases; omit `tests.db2` or `tests.sqlServer` (or leave
-`tests` empty) and those tests are skipped automatically.
+`tests` empty) and those tests are skipped automatically. For SQL Server Express named
+instances with a dynamic port, set `host` to `server\\instance` and omit `port` so the
+client resolves the port via SQL Browser; set `port` only when you know the fixed or
+dynamic TCP port.
 
 ### Built-in data (`config/default_data.json`)
 

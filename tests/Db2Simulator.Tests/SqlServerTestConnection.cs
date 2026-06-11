@@ -7,10 +7,9 @@ internal static class SqlServerTestConnection
 {
     public static string BuildConnectionString(SqlServerConnectionConfig config)
     {
-        int port = config.Port > 0 ? config.Port : 1433;
         var builder = new SqlConnectionStringBuilder
         {
-            DataSource = $"{config.Host},{port}",
+            DataSource = config.DataSource,
             InitialCatalog = config.Database,
             UserID = config.User,
             Password = config.Password,
