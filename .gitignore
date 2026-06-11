@@ -1,0 +1,6 @@
+bin/
+obj/
+.venv/
+*.user
+.refs/
+__pycache__
