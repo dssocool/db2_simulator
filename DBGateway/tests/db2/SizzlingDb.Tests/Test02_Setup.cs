@@ -13,7 +13,7 @@ namespace SizzlingDb.Tests;
 [TestCaseOrderer(NumberedTestCaseOrderer.TypeName, TestOrdering.AssemblyName)]
 public sealed class Test02_Setup
 {
-    [SkippableFact]
+    [Fact]
     public void T01_CreateLinkedServer_ToRealDb2()
     {
         var sqlServer = TestConfig.RequireSqlServer();
@@ -29,7 +29,7 @@ public sealed class Test02_Setup
         SqlServerLinkedServerManager.TestLink(conn, TestObjects.LinkedServerName);
     }
 
-    [SkippableFact]
+    [Fact]
     public void T02_CreateDb2TestTable_WithData()
     {
         var db2 = TestConfig.RequireDb2();
@@ -57,7 +57,7 @@ public sealed class Test02_Setup
         Assert.Equal(TestObjects.Rows.Count, CountRows(conn, $"SELECT COUNT(*) FROM {TestObjects.TableName}"));
     }
 
-    [SkippableFact]
+    [Fact]
     public void T03_CreateSqlServerMirrorDatabase_WithSameData()
     {
         var sqlServer = TestConfig.RequireSqlServer();
@@ -90,7 +90,7 @@ public sealed class Test02_Setup
         Assert.Equal(TestObjects.Rows.Count, CountRows(conn, $"SELECT COUNT(*) FROM dbo.{TestObjects.TableName}"));
     }
 
-    [SkippableFact]
+    [Fact]
     public void T04_LinkedServer_AnswersDb2Query()
     {
         var sqlServer = TestConfig.RequireSqlServer();

@@ -2,47 +2,29 @@ using SizzlingDb.Config;
 
 namespace SizzlingDb.Tests;
 
-/// <summary>
-/// Loads tests/db2/config.json once for the whole test run and hands out the
-/// integration-test connection targets. Tests are skipped when config.json or
-/// the relevant section is missing; everything else is a real failure.
-/// </summary>
+/// <summary>Loads tests/config.json for integration tests.</summary>
 internal static class TestConfig
 {
-    private static readonly Lazy<(IntegrationTestConfig? Config, string? Error)> Loaded = new(Load);
+    private static readonly Lazy<IntegrationTestConfig> Loaded = new(Load);
+
+    public static void EnsureLoaded() => _ = Loaded.Value;
 
     public static DatabaseConnectionConfig RequireDb2()
     {
-        IntegrationTestConfig config = Require();
-        DatabaseConnectionConfig? db2 = config.Db2;
-        Skip.If(db2 is null || !db2.IsConfigured, "db2 is not configured in tests/db2/config.json");
-        return db2!;
+        IntegrationTestConfig config = Loaded.Value;
+        if (config.Db2 is null || !config.Db2.IsConfigured)
+            throw new InvalidOperationException("db2 is not configured in tests/config.json");
+        return config.Db2;
     }
 
     public static SqlServerConnectionConfig RequireSqlServer()
     {
-        IntegrationTestConfig config = Require();
-        SqlServerConnectionConfig? sqlServer = config.SqlServer;
-        Skip.If(sqlServer is null || !sqlServer.IsConfigured, "sqlServer is not configured in tests/db2/config.json");
-        return sqlServer!;
+        IntegrationTestConfig config = Loaded.Value;
+        if (config.SqlServer is null || !config.SqlServer.IsConfigured)
+            throw new InvalidOperationException("sqlServer is not configured in tests/config.json");
+        return config.SqlServer;
     }
 
-    private static IntegrationTestConfig Require()
-    {
-        (IntegrationTestConfig? config, string? error) = Loaded.Value;
-        Skip.If(config is null, $"tests/db2/config.json could not be loaded: {error}");
-        return config!;
-    }
-
-    private static (IntegrationTestConfig?, string?) Load()
-    {
-        try
-        {
-            return (IntegrationTestConfig.Load(TestConfigPath.Resolve()), null);
-        }
-        catch (Exception ex)
-        {
-            return (null, ex.Message);
-        }
-    }
+    private static IntegrationTestConfig Load() =>
+        IntegrationTestConfig.Load(TestConfigPath.Resolve());
 }

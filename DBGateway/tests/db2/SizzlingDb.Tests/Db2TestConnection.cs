@@ -4,7 +4,7 @@ using IBM.Data.Db2;
 
 namespace SizzlingDb.Tests;
 
-/// <summary>Opens connections to the real DB2 configured in tests/db2/config.json.</summary>
+/// <summary>Opens connections to the real DB2 configured in tests/config.json.</summary>
 internal static class Db2TestConnection
 {
     private static int _driverConfigured;

@@ -14,6 +14,7 @@ public sealed class SimulatorFixture : IDisposable
 
     public SimulatorFixture()
     {
+        TestConfig.EnsureLoaded();
         Port = GetFreePort();
         Config = BuildConfig(Port);
         ISimulatorBackend backend = new SqlServerSimulatorBackend(Config);

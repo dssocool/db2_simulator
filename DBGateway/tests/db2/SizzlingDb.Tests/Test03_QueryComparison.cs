@@ -10,22 +10,22 @@ namespace SizzlingDb.Tests;
 [TestCaseOrderer(NumberedTestCaseOrderer.TypeName, TestOrdering.AssemblyName)]
 public sealed class Test03_QueryComparison
 {
-    [SkippableFact]
+    [Fact]
     public void T01_AllColumnsAllRows_MatchDirectDb2() =>
         AssertLinkedMatchesDirect(
             $"SELECT {TestObjects.AllColumns} FROM {TestObjects.TableName} ORDER BY ID");
 
-    [SkippableFact]
+    [Fact]
     public void T02_FilterByKey_MatchesDirectDb2() =>
         AssertLinkedMatchesDirect(
             $"SELECT {TestObjects.AllColumns} FROM {TestObjects.TableName} WHERE ID = 2");
 
-    [SkippableFact]
+    [Fact]
     public void T03_RowWithAllNulls_MatchesDirectDb2() =>
         AssertLinkedMatchesDirect(
             $"SELECT {TestObjects.AllColumns} FROM {TestObjects.TableName} WHERE ID = 4");
 
-    [SkippableFact]
+    [Fact]
     public void T04_Aggregates_MatchDirectDb2() =>
         AssertLinkedMatchesDirect($"""
             SELECT COUNT(*) AS CNT,
@@ -35,12 +35,12 @@ public sealed class Test03_QueryComparison
             FROM {TestObjects.TableName}
             """);
 
-    [SkippableFact]
+    [Fact]
     public void T05_StringFunctions_MatchDirectDb2() =>
         AssertLinkedMatchesDirect(
             $"SELECT UPPER(NAME) AS UNAME, LENGTH(NAME) AS NAME_LEN FROM {TestObjects.TableName} WHERE ID = 1");
 
-    [SkippableFact]
+    [Fact]
     public void T06_ScalarExpressions_MatchDirectDb2() =>
         AssertLinkedMatchesDirect("""
             SELECT CAST(42 AS INTEGER) AS N,
@@ -49,7 +49,7 @@ public sealed class Test03_QueryComparison
             FROM SYSIBM.SYSDUMMY1
             """);
 
-    [SkippableFact]
+    [Fact]
     public void T07_LinkedServerData_MatchesSqlServerMirrorTable()
     {
         var sqlServer = TestConfig.RequireSqlServer();

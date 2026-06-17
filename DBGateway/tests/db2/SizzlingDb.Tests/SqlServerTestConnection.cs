@@ -3,7 +3,7 @@ using Microsoft.Data.SqlClient;
 
 namespace SizzlingDb.Tests;
 
-/// <summary>Opens connections to the SQL Server configured in tests/db2/config.json.</summary>
+/// <summary>Opens connections to the SQL Server configured in tests/config.json.</summary>
 internal static class SqlServerTestConnection
 {
     public static SqlConnection Open(SqlServerConnectionConfig config, string? database = null)

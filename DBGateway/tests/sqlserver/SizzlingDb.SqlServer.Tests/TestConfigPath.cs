@@ -6,10 +6,10 @@ internal static class TestConfigPath
     {
         string[] candidates =
         [
-            Path.Combine(Directory.GetCurrentDirectory(), "tests", "sqlserver", "config.json"),
-            Path.Combine(Directory.GetCurrentDirectory(), "DBGateway", "tests", "sqlserver", "config.json"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "config.json"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "tests", "sqlserver", "config.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "tests", "config.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "DBGateway", "tests", "config.json"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "config.json"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "tests", "config.json"),
         ];
 
         foreach (string candidate in candidates)
@@ -20,6 +20,6 @@ internal static class TestConfigPath
         }
 
         throw new FileNotFoundException(
-            "tests/sqlserver/config.json not found. Copy tests/sqlserver/config.json.example to tests/sqlserver/config.json and set your connection details.");
+            "tests/config.json not found. Copy tests/config.json.example to tests/config.json and set your connection details.");
     }
 }

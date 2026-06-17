@@ -217,7 +217,7 @@ public sealed class DefaultResponseConfig
     public ErrorConfig? Error { get; set; }
 }
 
-/// <summary>Integration-test connection targets loaded from tests/*/config.json.</summary>
+/// <summary>Integration-test connection targets loaded from tests/config.json.</summary>
 public sealed class IntegrationTestConfig
 {
     public DatabaseConnectionConfig? Db2 { get; set; }
@@ -232,6 +232,13 @@ public sealed class IntegrationTestConfig
 
     public static IntegrationTestConfig Load(string path)
     {
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException(
+                "tests/config.json not found. Copy tests/config.json.example to tests/config.json and set your connection details.",
+                path);
+        }
+
         string json = File.ReadAllText(path);
         return JsonSerializer.Deserialize<IntegrationTestConfig>(json, JsonOptions)
                ?? throw new InvalidOperationException("Test configuration file is empty or invalid.");

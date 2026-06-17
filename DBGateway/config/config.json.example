@@ -1,5 +1,6 @@
 {
   "backends": {
+    // Configure db2 OR sqlServer, not both.
     "db2": {
       "host": "0.0.0.0",
       "port": 50000,
@@ -9,6 +10,17 @@
       "productId": "SQL11055",
       "dataEndian": "little"
     }
+
+    // SQL Server TDS simulator — replace the db2 block above with this (not both):
+    //
+    // "sqlServer": {
+    //   "host": "0.0.0.0",
+    //   "port": 11433,
+    //   "database": "master",
+    //   "serverName": "SIZZLINGDB",
+    //   "productName": "Microsoft SQL Server",
+    //   "productVersion": "16.00.4096"
+    // }
   },
   "auth": {
     "requirePassword": true,

@@ -214,20 +214,14 @@ Use JSON `null` for a NULL cell.
 
 ## Testing
 
-Integration tests use separate config files under `tests/` — not `config/config.json`.
-
-Copy the examples and set your real database connection details:
+All test projects read connection settings from `tests/config.json` (not
+`config/config.json`). Copy the example and set your real database details:
 
 ```bash
-cp tests/db2/config.json.example tests/db2/config.json
-cp tests/sqlserver/config.json.example tests/sqlserver/config.json   # optional
+cp tests/config.json.example tests/config.json
 ```
 
-### DB2 integration tests (`tests/db2/SizzlingDb.Tests`)
-
-`tests/db2/config.json` holds connection targets for the **real** DB2 and SQL Server
-used by the cross-database suite. Omit `db2` or `sqlServer` to skip tests that need
-that target.
+`tests/config.json`:
 
 ```jsonc
 {
@@ -251,8 +245,13 @@ For SQL Server Express named instances with a dynamic port, set `host` to
 `server\\instance` and omit `port` so the client resolves the port via SQL Browser;
 set `port` only when you know the fixed or dynamic TCP port.
 
-The suite is an ordered integration pipeline against those real databases. Test
-classes and methods run strictly in numeric order:
+Tests **fail** if `tests/config.json` is missing or a required section is incomplete.
+
+### DB2 integration tests (`tests/db2/SizzlingDb.Tests`)
+
+The cross-database suite connects to the **real** DB2 and SQL Server from
+`tests/config.json`. The suite is an ordered integration pipeline. Test classes
+and methods run strictly in numeric order:
 
 | Step | File | What it does |
 |------|------|--------------|
@@ -264,28 +263,16 @@ classes and methods run strictly in numeric order:
 dotnet test tests/db2/SizzlingDb.Tests
 ```
 
-Tests are skipped when `tests/db2/config.json` is missing or the relevant section
-is omitted; anything else (an unreachable server, a missing `DB2OLEDB` provider, a
-result mismatch) is a failure. On Linux the IBM `clidriver` native libraries bundled
-with the test project are loaded automatically; a Db2Connect license may be required
-for non-trial deployments.
+Unreachable servers, a missing `DB2OLEDB` provider, or a result mismatch are also
+failures. On Linux the IBM `clidriver` native libraries bundled with the test
+project are loaded automatically; a Db2Connect license may be required for
+non-trial deployments.
 
 ### SQL Server simulator tests (`tests/sqlserver/SizzlingDb.SqlServer.Tests`)
 
-These tests start an in-process TDS simulator and do not require `tests/sqlserver/config.json`.
-Use that file when adding tests against a **real** SQL Server:
-
-```jsonc
-{
-  "sqlServer": {
-    "host": "127.0.0.1",
-    "port": 1433,
-    "database": "master",
-    "user": "dev_user",
-    "password": "YourStrongPassword123"
-  }
-}
-```
+These tests start an in-process TDS simulator but still require `tests/config.json`
+to be present. They connect to the simulator on a dynamic local port, not the real
+SQL Server entry in the config.
 
 ```bash
 dotnet test tests/sqlserver/SizzlingDb.SqlServer.Tests

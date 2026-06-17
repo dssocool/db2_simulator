@@ -1,14 +1,14 @@
 namespace SizzlingDb.Tests;
 
 /// <summary>
-/// Step 1: verify the real SQL Server and the real DB2 from tests/db2/config.json
+/// Step 1: verify the real SQL Server and the real DB2 from tests/config.json
 /// are reachable and answer simple queries.
 /// Everything later in the suite depends on these two connections.
 /// </summary>
 [TestCaseOrderer(NumberedTestCaseOrderer.TypeName, TestOrdering.AssemblyName)]
 public sealed class Test01_Connectivity
 {
-    [SkippableFact]
+    [Fact]
     public void T01_SqlServer_IsReachable_AndAnswersQueries()
     {
         var config = TestConfig.RequireSqlServer();
@@ -23,7 +23,7 @@ public sealed class Test01_Connectivity
         Assert.False(string.IsNullOrWhiteSpace(reader.GetString(1)));
     }
 
-    [SkippableFact]
+    [Fact]
     public void T02_Db2_IsReachable_AndAnswersQueries()
     {
         var config = TestConfig.RequireDb2();
