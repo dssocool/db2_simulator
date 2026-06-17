@@ -90,6 +90,30 @@ public sealed class SqlServerBackendConfig
     public string ServerName { get; set; } = "SIZZLINGDB";
     public string ProductName { get; set; } = "Microsoft SQL Server";
     public string ProductVersion { get; set; } = "16.00.4096";
+
+    /// <summary>
+    /// When set, SQL that matches no mapping is executed on this upstream SQL Server
+    /// and the result is returned to the client.
+    /// </summary>
+    public SqlServerForwardConfig? Forward { get; set; }
+}
+
+/// <summary>Upstream SQL Server used for forwarding unmapped statements.</summary>
+public sealed class SqlServerForwardConfig
+{
+    public string Host { get; set; } = "";
+    public int Port { get; set; }
+    public string Database { get; set; } = "";
+    public string User { get; set; } = "";
+    public string Password { get; set; } = "";
+
+    public string DataSource => Port > 0 ? $"{Host},{Port}" : Host;
+
+    public bool IsConfigured =>
+        !string.IsNullOrWhiteSpace(Host)
+        && !string.IsNullOrWhiteSpace(Database)
+        && !string.IsNullOrWhiteSpace(User)
+        && Port is >= 0 and <= 65535;
 }
 
 public sealed class Db2BackendConfig

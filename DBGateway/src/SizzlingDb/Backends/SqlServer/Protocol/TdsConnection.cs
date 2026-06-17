@@ -10,6 +10,7 @@ internal sealed class TdsConnection
 {
     private readonly SizzlingDbConfig _config;
     private readonly StatementMapper _mapper;
+    private readonly SqlServerForwarder? _forwarder;
     private readonly ResultEncoder _encoder;
     private readonly TraceLogger _log;
     private readonly TdsReader _reader;
@@ -22,6 +23,8 @@ internal sealed class TdsConnection
     {
         _config = config;
         _mapper = new StatementMapper(config);
+        SqlServerForwardConfig? forward = config.RequireSqlServer().Forward;
+        _forwarder = forward is { IsConfigured: true } ? new SqlServerForwarder(forward) : null;
         _encoder = new ResultEncoder(config.RequireSqlServer());
         _log = log;
         _reader = new TdsReader(stream);
@@ -143,7 +146,24 @@ internal sealed class TdsConnection
         string sql = TdsReader.ParseSqlBatch(_reader.LastPayload);
         _log.Command($"recv SQL batch: {sql.Trim()}");
 
-        StatementResponse response = _mapper.Resolve(sql);
+        StatementResponse response;
+        if (_mapper.TryResolveMapping(sql, out StatementResponse? mapped))
+            response = mapped;
+        else if (_forwarder is not null)
+        {
+            _log.Command("forwarding SQL to upstream SQL Server");
+            try
+            {
+                response = _forwarder.Execute(sql, _database);
+            }
+            catch (Exception ex)
+            {
+                _log.Command($"forward failed: {ex}");
+                response = new ErrorResponse(50000, "42000", ex.Message);
+            }
+        }
+        else
+            response = _mapper.ResolveDefault(sql);
         byte[] payload = response switch
         {
             ResultSetResponse rs => _encoder.BuildResultSet(rs),

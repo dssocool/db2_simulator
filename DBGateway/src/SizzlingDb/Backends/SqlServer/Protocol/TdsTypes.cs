@@ -58,6 +58,10 @@ internal static class TdsColumnTypes
     public const byte TypeFloat4 = 0x3B;
     public const byte TypeFloat8 = 0x3E;
     public const byte TypeDecimal = 0x6A;
+    public const byte TypeMoney = 0x3C;
+    public const byte TypeSmallMoney = 0x7B;
+    public const byte TypeBit = 0x32;
+    public const byte TypeUniqueIdentifier = 0x24;
     public const byte TypeDate = 0x28;
     public const byte TypeDateTime = 0x3D;
     public const byte TypeDateTime2 = 0x2A;

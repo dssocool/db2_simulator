@@ -31,6 +31,15 @@ internal sealed class StatementMapper
 
     public StatementResponse Resolve(string sql)
     {
+        if (TryResolveMapping(sql, out StatementResponse? mapped))
+            return mapped;
+
+        return ResolveDefault(sql);
+    }
+
+    /// <summary>Returns true when a configured mapping matched the statement.</summary>
+    public bool TryResolveMapping(string sql, out StatementResponse response)
+    {
         string normalized = Normalize(sql);
 
         foreach (MappingConfig m in _config.Mappings)
@@ -41,9 +50,18 @@ internal sealed class StatementMapper
                 _ => string.Equals(Normalize(m.Sql), normalized, StringComparison.Ordinal),
             };
             if (matched)
-                return Build(m.Result, m.UpdateCount, m.Error);
+            {
+                response = Build(m.Result, m.UpdateCount, m.Error);
+                return true;
+            }
         }
 
+        response = null!;
+        return false;
+    }
+
+    public StatementResponse ResolveDefault(string sql)
+    {
         if (_config.DefaultResponse is { } def)
             return Build(def.Result, def.UpdateCount, def.Error);
 
