@@ -1,7 +1,4 @@
 {
-  "database": {
-    "type": "db2"
-  },
   "backends": {
     "db2": {
       "host": "0.0.0.0",

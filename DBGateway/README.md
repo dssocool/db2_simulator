@@ -51,9 +51,9 @@ dotnet run --project src/SizzlingDb -- config/config.json
 The configuration path is optional; if omitted the server looks for
 `config/config.json` next to the binary and in the current directory. You can
 also pass `--config <path>`. Built-in SQL mappings and the default unmapped
-response are loaded from `config/backends/<database.type>/default_data.json`
+response are loaded from `config/backends/<backend>/default_data.json`
 (for DB2: `config/backends/db2/default_data.json`). Optional user mappings are
-merged from `config/backends/<database.type>/data.json` when that file exists.
+merged from `config/backends/<backend>/data.json` when that file exists.
 
 On start it prints:
 
@@ -76,11 +76,8 @@ to create your local server settings file.
 
 ```jsonc
 {
-  "database": {
-    "type": "db2"                    // selects the active backend
-  },
   "backends": {
-    "db2": {                         // DB2-specific listen/advertise settings
+    "db2": {                         // configure db2 OR sqlServer, not both
       "host": "0.0.0.0",
       "port": 50000,
       "database": "TESTDB",          // must match Initial Catalog in the linked server
@@ -125,14 +122,32 @@ to create your local server settings file.
 ```
 
 The top-level `auth`, `trace`, and `matching` sections configure the simulator
-process (`dotnet run`). The `database.type` field selects which backend runs;
-`backends.db2` holds settings specific to the DB2 DRDA implementation. The
-optional `tests` section holds connection details for integration tests against
-real databases; omit `tests.db2` or `tests.sqlServer` (or leave `tests` empty)
-and those tests are skipped automatically. For SQL Server Express named
-instances with a dynamic port, set `host` to `server\\instance` and omit `port` so the
-client resolves the port via SQL Browser; set `port` only when you know the fixed or
-dynamic TCP port.
+process (`dotnet run`). Configure exactly one entry under `backends` — `db2` for
+the DB2 DRDA simulator or `sqlServer` for the SQL Server TDS simulator; the
+presence of that section selects the active backend. The optional `tests` section
+holds connection details for integration tests against real databases; omit
+`tests.db2` or `tests.sqlServer` (or leave `tests` empty) and those tests are
+skipped automatically. For SQL Server Express named instances with a dynamic port,
+set `host` to `server\\instance` and omit `port` so the client resolves the port
+via SQL Browser; set `port` only when you know the fixed or dynamic TCP port.
+
+For the SQL Server simulator backend, use `backends.sqlServer` instead of
+`backends.db2` (same top-level sections otherwise):
+
+```jsonc
+{
+  "backends": {
+    "sqlServer": {
+      "host": "0.0.0.0",
+      "port": 11433,
+      "database": "master",
+      "serverName": "SIZZLINGDB",
+      "productName": "Microsoft SQL Server",
+      "productVersion": "16.00.4096"
+    }
+  }
+}
+```
 
 ### Built-in data (`config/backends/db2/default_data.json`)
 

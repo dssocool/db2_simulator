@@ -9,7 +9,7 @@ SizzlingDbConfig config;
 try
 {
     config = SizzlingDbConfig.Load(configPath);
-    string backendType = config.Database.Type.Trim().ToLowerInvariant();
+    string backendType = config.BackendType;
 
     string defaultDataPath = ResolveDefaultDataPath(configPath, backendType);
     string? userDataPath = ResolveUserDataPath(configPath, backendType);
@@ -43,11 +43,11 @@ Console.CancelKeyPress += (_, e) =>
     cts.Cancel();
 };
 
-ISimulatorBackend backend = config.Database.Type.Trim().ToLowerInvariant() switch
+ISimulatorBackend backend = config.BackendType switch
 {
     "db2" => new Db2SimulatorBackend(config),
     "sqlserver" => new SqlServerSimulatorBackend(config),
-    _ => throw new InvalidOperationException($"Unsupported database.type: {config.Database.Type}"),
+    _ => throw new InvalidOperationException($"Unsupported backend: {config.BackendType}"),
 };
 
 try

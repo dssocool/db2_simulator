@@ -6,7 +6,6 @@ namespace SizzlingDb.Config;
 /// <summary>Root configuration loaded from config.json.</summary>
 public sealed class SizzlingDbConfig
 {
-    public DatabaseConfig Database { get; set; } = new();
     public BackendsConfig Backends { get; set; } = new();
     public AuthConfig Auth { get; set; } = new();
     public TraceConfig Trace { get; set; } = new();
@@ -20,6 +19,10 @@ public sealed class SizzlingDbConfig
     /// <summary>Populated from data files at startup; tests may set inline.</summary>
     [JsonIgnore]
     public List<MappingConfig> Mappings { get; set; } = new();
+
+    /// <summary>Active backend identifier, set during validation (e.g. "db2", "sqlserver").</summary>
+    [JsonIgnore]
+    public string BackendType { get; private set; } = "";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -41,40 +44,38 @@ public sealed class SizzlingDbConfig
     public Db2BackendConfig RequireDb2() =>
         Backends.Db2
         ?? throw new InvalidOperationException(
-            $"backends.db2 is required when database.type is \"{Database.Type}\".");
+            "backends.db2 is required when the active backend is db2.");
 
     public SqlServerBackendConfig RequireSqlServer() =>
         Backends.SqlServer
         ?? throw new InvalidOperationException(
-            $"backends.sqlserver is required when database.type is \"{Database.Type}\".");
+            "backends.sqlServer is required when the active backend is sqlserver.");
 
-    private void Validate()
+    internal void Validate()
     {
-        if (string.IsNullOrWhiteSpace(Database.Type))
-            throw new InvalidOperationException("database.type is required.");
+        bool hasDb2 = Backends.Db2 is not null;
+        bool hasSqlServer = Backends.SqlServer is not null;
 
-        switch (Database.Type.Trim().ToLowerInvariant())
+        if (hasDb2 && hasSqlServer)
+            throw new InvalidOperationException(
+                "Configure exactly one backend in backends (db2 or sqlServer).");
+
+        if (!hasDb2 && !hasSqlServer)
+            throw new InvalidOperationException(
+                "Configure one backend in backends (db2 or sqlServer).");
+
+        if (hasDb2)
         {
-            case "db2":
-                Db2BackendConfig db2 = RequireDb2();
-                if (db2.Port is <= 0 or > 65535)
-                    throw new InvalidOperationException($"Invalid backends.db2 port: {db2.Port}");
-                break;
-            case "sqlserver":
-                SqlServerBackendConfig sql = RequireSqlServer();
-                if (sql.Port is <= 0 or > 65535)
-                    throw new InvalidOperationException($"Invalid backends.sqlserver port: {sql.Port}");
-                break;
-            default:
-                throw new InvalidOperationException($"Unsupported database.type: {Database.Type}");
+            BackendType = "db2";
+            if (Backends.Db2!.Port is <= 0 or > 65535)
+                throw new InvalidOperationException($"Invalid backends.db2 port: {Backends.Db2.Port}");
+            return;
         }
-    }
-}
 
-public sealed class DatabaseConfig
-{
-    /// <summary>Active backend identifier (e.g. "db2").</summary>
-    public string Type { get; set; } = "db2";
+        BackendType = "sqlserver";
+        if (Backends.SqlServer!.Port is <= 0 or > 65535)
+            throw new InvalidOperationException($"Invalid backends.sqlServer port: {Backends.SqlServer.Port}");
+    }
 }
 
 public sealed class BackendsConfig

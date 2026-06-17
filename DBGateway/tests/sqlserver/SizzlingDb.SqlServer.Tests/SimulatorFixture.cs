@@ -34,9 +34,8 @@ public sealed class SimulatorFixture : IDisposable
         string defaultDataPath = ResolveDefaultDataPath();
         MappingData data = MappingData.Load(defaultDataPath);
 
-        return new SizzlingDbConfig
+        var config = new SizzlingDbConfig
         {
-            Database = new DatabaseConfig { Type = "sqlserver" },
             Backends = new BackendsConfig
             {
                 SqlServer = new SqlServerBackendConfig
@@ -66,6 +65,8 @@ public sealed class SimulatorFixture : IDisposable
             DefaultResponse = data.DefaultResponse,
             Mappings = data.Mappings,
         };
+        config.Validate();
+        return config;
     }
 
     private static string ResolveDefaultDataPath()
