@@ -42,6 +42,13 @@
       "database": "master",
       "user": "dev_user",
       "password": "YourStrongPassword123"
+    },
+    "sqlServerSimulator": {
+      "host": "127.0.0.1",
+      "port": 11433,
+      "database": "master",
+      "user": "dev_user",
+      "password": "YourStrongPassword123"
     }
   }
 }

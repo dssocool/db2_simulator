@@ -43,6 +43,11 @@ public sealed class SizzlingDbConfig
         ?? throw new InvalidOperationException(
             $"backends.db2 is required when database.type is \"{Database.Type}\".");
 
+    public SqlServerBackendConfig RequireSqlServer() =>
+        Backends.SqlServer
+        ?? throw new InvalidOperationException(
+            $"backends.sqlserver is required when database.type is \"{Database.Type}\".");
+
     private void Validate()
     {
         if (string.IsNullOrWhiteSpace(Database.Type))
@@ -54,6 +59,11 @@ public sealed class SizzlingDbConfig
                 Db2BackendConfig db2 = RequireDb2();
                 if (db2.Port is <= 0 or > 65535)
                     throw new InvalidOperationException($"Invalid backends.db2 port: {db2.Port}");
+                break;
+            case "sqlserver":
+                SqlServerBackendConfig sql = RequireSqlServer();
+                if (sql.Port is <= 0 or > 65535)
+                    throw new InvalidOperationException($"Invalid backends.sqlserver port: {sql.Port}");
                 break;
             default:
                 throw new InvalidOperationException($"Unsupported database.type: {Database.Type}");
@@ -70,6 +80,17 @@ public sealed class DatabaseConfig
 public sealed class BackendsConfig
 {
     public Db2BackendConfig? Db2 { get; set; }
+    public SqlServerBackendConfig? SqlServer { get; set; }
+}
+
+public sealed class SqlServerBackendConfig
+{
+    public string Host { get; set; } = "0.0.0.0";
+    public int Port { get; set; } = 11433;
+    public string Database { get; set; } = "master";
+    public string ServerName { get; set; } = "SIZZLINGDB";
+    public string ProductName { get; set; } = "Microsoft SQL Server";
+    public string ProductVersion { get; set; } = "16.00.4096";
 }
 
 public sealed class Db2BackendConfig
@@ -201,6 +222,8 @@ public sealed class TestConnectionsConfig
 {
     public DatabaseConnectionConfig? Db2 { get; set; }
     public SqlServerConnectionConfig? SqlServer { get; set; }
+    /// <summary>Connection target for integration tests against the SQL Server simulator backend.</summary>
+    public SqlServerConnectionConfig? SqlServerSimulator { get; set; }
 }
 
 public class DatabaseConnectionConfig

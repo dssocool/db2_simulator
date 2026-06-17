@@ -1,0 +1,35 @@
+{
+  "defaultResponse": {
+    "error": {
+      "sqlcode": 2812,
+      "sqlstate": "42000",
+      "message": "SIZZLINGDB: no mapping configured for the requested statement"
+    }
+  },
+  "mappings": [
+    {
+      "sql": "SELECT CURRENT_TIMESTAMP AS TS",
+      "match": "exact",
+      "result": {
+        "columns": [
+          { "name": "TS", "type": "TIMESTAMP", "nullable": true }
+        ],
+        "rows": [
+          ["2026-06-10-14.30.00.000000"]
+        ]
+      }
+    },
+    {
+      "sql": "SELECT GETDATE() AS TS",
+      "match": "exact",
+      "result": {
+        "columns": [
+          { "name": "TS", "type": "TIMESTAMP", "nullable": true }
+        ],
+        "rows": [
+          ["2026-06-10-14.30.00.000000"]
+        ]
+      }
+    }
+  ]
+}

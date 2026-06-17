@@ -1,4 +1,5 @@
 using SizzlingDb.Backends.Db2;
+using SizzlingDb.Backends.SqlServer;
 using SizzlingDb.Config;
 using SizzlingDb.Core;
 
@@ -45,6 +46,7 @@ Console.CancelKeyPress += (_, e) =>
 ISimulatorBackend backend = config.Database.Type.Trim().ToLowerInvariant() switch
 {
     "db2" => new Db2SimulatorBackend(config),
+    "sqlserver" => new SqlServerSimulatorBackend(config),
     _ => throw new InvalidOperationException($"Unsupported database.type: {config.Database.Type}"),
 };
 

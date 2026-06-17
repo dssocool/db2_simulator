@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="SizzlingDb.Tests" />
+    <InternalsVisibleTo Include="SizzlingDb.SqlServer.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +32,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\..\config\backends\db2\data.json" Link="config\backends\db2\data.json" Condition="Exists('..\..\config\backends\db2\data.json')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\config\backends\sqlserver\default_data.json" Link="config\backends\sqlserver\default_data.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\config\backends\sqlserver\data.json" Link="config\backends\sqlserver\data.json" Condition="Exists('..\..\config\backends\sqlserver\data.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

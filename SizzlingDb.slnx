@@ -6,5 +6,8 @@
     <Folder Name="/tests/db2/">
       <Project Path="tests/db2/SizzlingDb.Tests/SizzlingDb.Tests.csproj" />
     </Folder>
+    <Folder Name="/tests/sqlserver/">
+      <Project Path="tests/sqlserver/SizzlingDb.SqlServer.Tests/SizzlingDb.SqlServer.Tests.csproj" />
+    </Folder>
   </Folder>
 </Solution>
