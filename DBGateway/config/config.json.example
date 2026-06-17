@@ -25,27 +25,5 @@
     "ignoreCase": true,
     "collapseWhitespace": true,
     "trimTrailingSemicolon": true
-  },
-  "tests": {
-    "db2": {
-      "host": "127.0.0.1",
-      "port": 50000,
-      "database": "SAMPLE",
-      "user": "db2inst1",
-      "password": "YourStrongPassword123"
-    },
-    "sqlServer": {
-      "host": "localhost\\SQLEXPRESS",
-      "database": "master",
-      "user": "dev_user",
-      "password": "YourStrongPassword123"
-    },
-    "sqlServerSimulator": {
-      "host": "127.0.0.1",
-      "port": 11433,
-      "database": "master",
-      "user": "dev_user",
-      "password": "YourStrongPassword123"
-    }
   }
 }

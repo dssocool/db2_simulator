@@ -10,8 +10,6 @@ public sealed class SizzlingDbConfig
     public AuthConfig Auth { get; set; } = new();
     public TraceConfig Trace { get; set; } = new();
     public MatchingConfig Matching { get; set; } = new();
-    /// <summary>Optional integration-test connection targets; omit a section to skip those tests.</summary>
-    public TestConnectionsConfig Tests { get; set; } = new();
     /// <summary>Populated from default_data.json at startup; tests may set inline.</summary>
     [JsonIgnore]
     public DefaultResponseConfig? DefaultResponse { get; set; }
@@ -219,12 +217,25 @@ public sealed class DefaultResponseConfig
     public ErrorConfig? Error { get; set; }
 }
 
-public sealed class TestConnectionsConfig
+/// <summary>Integration-test connection targets loaded from tests/*/config.json.</summary>
+public sealed class IntegrationTestConfig
 {
     public DatabaseConnectionConfig? Db2 { get; set; }
     public SqlServerConnectionConfig? SqlServer { get; set; }
-    /// <summary>Connection target for integration tests against the SQL Server simulator backend.</summary>
-    public SqlServerConnectionConfig? SqlServerSimulator { get; set; }
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip,
+        AllowTrailingCommas = true,
+    };
+
+    public static IntegrationTestConfig Load(string path)
+    {
+        string json = File.ReadAllText(path);
+        return JsonSerializer.Deserialize<IntegrationTestConfig>(json, JsonOptions)
+               ?? throw new InvalidOperationException("Test configuration file is empty or invalid.");
+    }
 }
 
 public class DatabaseConnectionConfig

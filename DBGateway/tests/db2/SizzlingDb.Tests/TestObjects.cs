@@ -7,7 +7,7 @@ namespace SizzlingDb.Tests;
 /// </summary>
 internal static class TestObjects
 {
-    /// <summary>Linked server created in SQL Server, pointing at the real DB2 (tests.db2).</summary>
+    /// <summary>Linked server created in SQL Server, pointing at the real DB2.</summary>
     public const string LinkedServerName = "DB2SIM_TESTLINK";
 
     /// <summary>Database created in SQL Server that holds the mirror copy of the DB2 test data.</summary>

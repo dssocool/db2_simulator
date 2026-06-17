@@ -6,3 +6,5 @@ obj/
 __pycache__
 DBGateway/config/config.json
 DBGateway/config/backends/db2/data.json
+DBGateway/tests/db2/config.json
+DBGateway/tests/sqlserver/config.json

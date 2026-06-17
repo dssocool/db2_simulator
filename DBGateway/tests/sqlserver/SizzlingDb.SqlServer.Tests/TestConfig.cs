@@ -1,36 +1,26 @@
 using SizzlingDb.Config;
 
-namespace SizzlingDb.Tests;
+namespace SizzlingDb.SqlServer.Tests;
 
 /// <summary>
-/// Loads tests/db2/config.json once for the whole test run and hands out the
-/// integration-test connection targets. Tests are skipped when config.json or
-/// the relevant section is missing; everything else is a real failure.
+/// Loads tests/sqlserver/config.json for integration tests against a real SQL Server.
 /// </summary>
 internal static class TestConfig
 {
     private static readonly Lazy<(IntegrationTestConfig? Config, string? Error)> Loaded = new(Load);
 
-    public static DatabaseConnectionConfig RequireDb2()
-    {
-        IntegrationTestConfig config = Require();
-        DatabaseConnectionConfig? db2 = config.Db2;
-        Skip.If(db2 is null || !db2.IsConfigured, "db2 is not configured in tests/db2/config.json");
-        return db2!;
-    }
-
     public static SqlServerConnectionConfig RequireSqlServer()
     {
         IntegrationTestConfig config = Require();
         SqlServerConnectionConfig? sqlServer = config.SqlServer;
-        Skip.If(sqlServer is null || !sqlServer.IsConfigured, "sqlServer is not configured in tests/db2/config.json");
+        Skip.If(sqlServer is null || !sqlServer.IsConfigured, "sqlServer is not configured in tests/sqlserver/config.json");
         return sqlServer!;
     }
 
     private static IntegrationTestConfig Require()
     {
         (IntegrationTestConfig? config, string? error) = Loaded.Value;
-        Skip.If(config is null, $"tests/db2/config.json could not be loaded: {error}");
+        Skip.If(config is null, $"tests/sqlserver/config.json could not be loaded: {error}");
         return config!;
     }
 

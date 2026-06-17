@@ -102,21 +102,6 @@ to create your local server settings file.
     "ignoreCase": true,
     "collapseWhitespace": true,      // treat runs of whitespace as one space
     "trimTrailingSemicolon": true
-  },
-  "tests": {
-    "db2": {                         // optional — omit to skip real-DB2 tests
-      "host": "127.0.0.1",
-      "port": 50000,
-      "database": "SAMPLE",
-      "user": "db2inst1",
-      "password": "YourStrongPassword123"
-    },
-    "sqlServer": {                 // optional — omit to skip SQL Server tests
-      "host": "localhost\\SQLEXPRESS", // named instance; omit port to use SQL Browser
-      "database": "master",
-      "user": "dev_user",
-      "password": "YourStrongPassword123"
-    }
   }
 }
 ```
@@ -124,12 +109,7 @@ to create your local server settings file.
 The top-level `auth`, `trace`, and `matching` sections configure the simulator
 process (`dotnet run`). Configure exactly one entry under `backends` — `db2` for
 the DB2 DRDA simulator or `sqlServer` for the SQL Server TDS simulator; the
-presence of that section selects the active backend. The optional `tests` section
-holds connection details for integration tests against real databases; omit
-`tests.db2` or `tests.sqlServer` (or leave `tests` empty) and those tests are
-skipped automatically. For SQL Server Express named instances with a dynamic port,
-set `host` to `server\\instance` and omit `port` so the client resolves the port
-via SQL Browser; set `port` only when you know the fixed or dynamic TCP port.
+presence of that section selects the active backend.
 
 For the SQL Server simulator backend, use `backends.sqlServer` instead of
 `backends.db2` (same top-level sections otherwise):
@@ -234,9 +214,44 @@ Use JSON `null` for a NULL cell.
 
 ## Testing
 
-Copy `config/config.json.example` to `config/config.json` before running tests.
-The suite is an ordered integration pipeline against the **real** SQL Server
-(`tests.sqlServer`) and the **real** DB2 (`tests.db2`) from `config.json`. Test
+Integration tests use separate config files under `tests/` — not `config/config.json`.
+
+Copy the examples and set your real database connection details:
+
+```bash
+cp tests/db2/config.json.example tests/db2/config.json
+cp tests/sqlserver/config.json.example tests/sqlserver/config.json   # optional
+```
+
+### DB2 integration tests (`tests/db2/SizzlingDb.Tests`)
+
+`tests/db2/config.json` holds connection targets for the **real** DB2 and SQL Server
+used by the cross-database suite. Omit `db2` or `sqlServer` to skip tests that need
+that target.
+
+```jsonc
+{
+  "db2": {
+    "host": "127.0.0.1",
+    "port": 50000,
+    "database": "SAMPLE",
+    "user": "db2inst1",
+    "password": "YourStrongPassword123"
+  },
+  "sqlServer": {
+    "host": "localhost\\SQLEXPRESS", // named instance; omit port to use SQL Browser
+    "database": "master",
+    "user": "dev_user",
+    "password": "YourStrongPassword123"
+  }
+}
+```
+
+For SQL Server Express named instances with a dynamic port, set `host` to
+`server\\instance` and omit `port` so the client resolves the port via SQL Browser;
+set `port` only when you know the fixed or dynamic TCP port.
+
+The suite is an ordered integration pipeline against those real databases. Test
 classes and methods run strictly in numeric order:
 
 | Step | File | What it does |
@@ -249,11 +264,32 @@ classes and methods run strictly in numeric order:
 dotnet test tests/db2/SizzlingDb.Tests
 ```
 
-Tests are skipped when `config.json` is missing or the relevant `tests.*`
-section is omitted; anything else (an unreachable server, a missing `DB2OLEDB`
-provider, a result mismatch) is a failure. On Linux the IBM `clidriver` native
-libraries bundled with the test project are loaded automatically; a Db2Connect
-license may be required for non-trial deployments.
+Tests are skipped when `tests/db2/config.json` is missing or the relevant section
+is omitted; anything else (an unreachable server, a missing `DB2OLEDB` provider, a
+result mismatch) is a failure. On Linux the IBM `clidriver` native libraries bundled
+with the test project are loaded automatically; a Db2Connect license may be required
+for non-trial deployments.
+
+### SQL Server simulator tests (`tests/sqlserver/SizzlingDb.SqlServer.Tests`)
+
+These tests start an in-process TDS simulator and do not require `tests/sqlserver/config.json`.
+Use that file when adding tests against a **real** SQL Server:
+
+```jsonc
+{
+  "sqlServer": {
+    "host": "127.0.0.1",
+    "port": 1433,
+    "database": "master",
+    "user": "dev_user",
+    "password": "YourStrongPassword123"
+  }
+}
+```
+
+```bash
+dotnet test tests/sqlserver/SizzlingDb.SqlServer.Tests
+```
 
 ## Using it from SQL Server
 

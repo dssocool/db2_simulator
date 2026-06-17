@@ -1,8 +1,8 @@
 namespace SizzlingDb.Tests;
 
 /// <summary>
-/// Step 1: verify the real SQL Server (tests.sqlServer) and the real DB2
-/// (tests.db2) from config/config.json are reachable and answer simple queries.
+/// Step 1: verify the real SQL Server and the real DB2 from tests/db2/config.json
+/// are reachable and answer simple queries.
 /// Everything later in the suite depends on these two connections.
 /// </summary>
 [TestCaseOrderer(NumberedTestCaseOrderer.TypeName, TestOrdering.AssemblyName)]
