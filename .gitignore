@@ -4,5 +4,5 @@ obj/
 *.user
 .refs/
 __pycache__
-config/config.json
-config/backends/db2/data.json
+DBGateway/config/config.json
+DBGateway/config/backends/db2/data.json

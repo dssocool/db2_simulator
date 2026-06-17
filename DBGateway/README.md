@@ -1,5 +1,8 @@
 # sizzlingdb
 
+This component lives under `DBGateway/`. Run the commands below from that directory,
+or from the repo root with `--project DBGateway/src/SizzlingDb` and `DBGateway/config/...` paths.
+
 A standalone .NET 10 TCP server that speaks just enough of the **DB2 DRDA wire
 protocol** to look like a real IBM DB2 LUW server to the **Microsoft OLE DB
 Provider for DB2 (`DB2OLEDB`)**. It performs the full connection handshake,

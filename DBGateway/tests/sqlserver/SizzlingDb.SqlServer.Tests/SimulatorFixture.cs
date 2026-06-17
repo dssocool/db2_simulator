@@ -73,8 +73,9 @@ public sealed class SimulatorFixture : IDisposable
         string[] candidates =
         [
             Path.Combine(Directory.GetCurrentDirectory(), "config", "backends", "sqlserver", "default_data.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "DBGateway", "config", "backends", "sqlserver", "default_data.json"),
             Path.Combine(AppContext.BaseDirectory, "config", "backends", "sqlserver", "default_data.json"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "config", "backends", "sqlserver", "default_data.json"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "config", "backends", "sqlserver", "default_data.json"),
         ];
         foreach (string c in candidates)
         {

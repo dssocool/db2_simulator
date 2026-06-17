@@ -7,9 +7,10 @@ internal static class ConfigPath
         string[] candidates =
         [
             Path.Combine(Directory.GetCurrentDirectory(), "config", "config.json"),
-            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "config", "config.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "DBGateway", "config", "config.json"),
+            Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "config", "config.json"),
             Path.Combine(AppContext.BaseDirectory, "config", "config.json"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "config", "config.json"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "..", "config", "config.json"),
         ];
 
         foreach (string candidate in candidates)
