@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SizzlingDb/SizzlingDb.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SizzlingDb.Tests/SizzlingDb.Tests.csproj" />
+  </Folder>
+</Solution>

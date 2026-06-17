@@ -1,12 +1,17 @@
 {
-  "server": {
-    "host": "0.0.0.0",
-    "port": 50000,
-    "database": "TESTDB",
-    "serverClassName": "QDB2/LINUXX8664",
-    "serverName": "DB2SIM",
-    "productId": "SQL11055",
-    "dataEndian": "little"
+  "database": {
+    "type": "db2"
+  },
+  "backends": {
+    "db2": {
+      "host": "0.0.0.0",
+      "port": 50000,
+      "database": "TESTDB",
+      "serverClassName": "QDB2/LINUXX8664",
+      "serverName": "SIZZLINGDB",
+      "productId": "SQL11055",
+      "dataEndian": "little"
+    }
   },
   "auth": {
     "requirePassword": true,

@@ -1,4 +1,4 @@
-# DB2 DRDA Simulator
+# sizzlingdb
 
 A standalone .NET 10 TCP server that speaks just enough of the **DB2 DRDA wire
 protocol** to look like a real IBM DB2 LUW server to the **Microsoft OLE DB
@@ -10,11 +10,14 @@ store any data.
 This lets you point a SQL Server linked server (that normally targets DB2) at the
 simulator instead, and get back canned results for known statements.
 
+The project is structured to support additional database backends in the future;
+today only the **DB2 DRDA** backend is implemented.
+
 ```
-SQL Server  ──DB2OLEDB / DRDA──▶  db2sim (this project)  ──▶  config.json + default_data.json [+ data.json]
+SQL Server  ──DB2OLEDB / DRDA──▶  sizzlingdb  ──▶  config.json + backends/db2/default_data.json [+ data.json]
 ```
 
-## What it implements
+## What it implements (DB2 backend)
 
 - DRDA/DDM framing (DSS request/reply/object, command chaining, correlation ids).
 - Connection handshake: `EXCSAT → ACCSEC → SECCHK → ACCRDB` with their replies.
@@ -39,20 +42,20 @@ SQL Server  ──DB2OLEDB / DRDA──▶  db2sim (this project)  ──▶  co
 
 ```bash
 dotnet build
-dotnet run --project src/Db2Simulator -- config/config.json
+dotnet run --project src/SizzlingDb -- config/config.json
 ```
 
 The configuration path is optional; if omitted the server looks for
 `config/config.json` next to the binary and in the current directory. You can
 also pass `--config <path>`. Built-in SQL mappings and the default unmapped
-response are always loaded from `default_data.json` (next to the config file or
-under `config/`). Optional user mappings are merged from `data.json` when that
-file exists.
+response are loaded from `config/backends/<database.type>/default_data.json`
+(for DB2: `config/backends/db2/default_data.json`). Optional user mappings are
+merged from `config/backends/<database.type>/data.json` when that file exists.
 
 On start it prints:
 
 ```
-DB2 simulator listening on 0.0.0.0:50000 (database=TESTDB, typedef=QTDSQLX86)
+sizzlingdb (SIZZLINGDB) listening on 0.0.0.0:50000 (database=TESTDB, typedef=QTDSQLX86)
 ```
 
 The server binds `0.0.0.0` so it is reachable from the Windows host whether SQL
@@ -61,22 +64,28 @@ Server reaches WSL2 via `localhost` forwarding or the WSL IP.
 ## Configuration
 
 Server settings live in `config/config.json`. Built-in mappings and the
-default unmapped response live in `config/default_data.json` (shipped with the
-project). Add your own mappings in `config/data.json` (gitignored). Copy
-`config/config.json.example` to create your local server settings file.
+default unmapped response live in `config/backends/db2/default_data.json`
+(shipped with the project). Add your own mappings in
+`config/backends/db2/data.json` (gitignored). Copy `config/config.json.example`
+to create your local server settings file.
 
 ### Server settings (`config/config.json`)
 
 ```jsonc
 {
-  "server": {
-    "host": "0.0.0.0",
-    "port": 50000,
-    "database": "TESTDB",            // must match Initial Catalog in the linked server
-    "serverClassName": "QDB2/LINUXX8664",
-    "serverName": "DB2SIM",
-    "productId": "SQL11055",         // advertised PRDID (DB2 LUW v11.x)
-    "dataEndian": "little"           // "little" = QTDSQLX86, "big" = QTDSQLASC
+  "database": {
+    "type": "db2"                    // selects the active backend
+  },
+  "backends": {
+    "db2": {                         // DB2-specific listen/advertise settings
+      "host": "0.0.0.0",
+      "port": 50000,
+      "database": "TESTDB",          // must match Initial Catalog in the linked server
+      "serverClassName": "QDB2/LINUXX8664",
+      "serverName": "SIZZLINGDB",
+      "productId": "SQL11055",       // advertised PRDID (DB2 LUW v11.x)
+      "dataEndian": "little"         // "little" = QTDSQLX86, "big" = QTDSQLASC
+    }
   },
   "auth": {
     "requirePassword": true,
@@ -112,18 +121,21 @@ project). Add your own mappings in `config/data.json` (gitignored). Copy
 }
 ```
 
-The top-level `server`, `auth`, `trace`, and `matching` sections configure the simulator
-process (`dotnet run`). The optional `tests` section holds connection details for
-integration tests against real databases; omit `tests.db2` or `tests.sqlServer` (or leave
-`tests` empty) and those tests are skipped automatically. For SQL Server Express named
+The top-level `auth`, `trace`, and `matching` sections configure the simulator
+process (`dotnet run`). The `database.type` field selects which backend runs;
+`backends.db2` holds settings specific to the DB2 DRDA implementation. The
+optional `tests` section holds connection details for integration tests against
+real databases; omit `tests.db2` or `tests.sqlServer` (or leave `tests` empty)
+and those tests are skipped automatically. For SQL Server Express named
 instances with a dynamic port, set `host` to `server\\instance` and omit `port` so the
 client resolves the port via SQL Browser; set `port` only when you know the fixed or
 dynamic TCP port.
 
-### Built-in data (`config/default_data.json`)
+### Built-in data (`config/backends/db2/default_data.json`)
 
-Always loaded at startup. Contains the default unmapped response and the
-`CURRENT TIMESTAMP` probe mapping used by DB2OLEDB during connection setup.
+Always loaded at startup for the active backend. Contains the default unmapped
+response and the `CURRENT TIMESTAMP` probe mapping used by DB2OLEDB during
+connection setup.
 
 ```jsonc
 {
@@ -143,7 +155,7 @@ Always loaded at startup. Contains the default unmapped response and the
 }
 ```
 
-### User mappings (`config/data.json`)
+### User mappings (`config/backends/db2/data.json`)
 
 Optional. Create this file to add your own SQL-to-result mappings; entries are
 merged after the built-in mappings from `default_data.json`.
@@ -216,7 +228,7 @@ classes and methods run strictly in numeric order:
 | 3 | `Test03_QueryComparison.cs` | Runs the same DB2 SQL through `OPENQUERY` on the linked server and directly against DB2 with the IBM driver, then compares the result sets cell by cell (all column types, NULLs, filters, aggregates, scalar functions, and the SQL Server mirror copy). |
 
 ```bash
-dotnet test tests/Db2Simulator.Tests
+dotnet test tests/SizzlingDb.Tests
 ```
 
 Tests are skipped when `config.json` is missing or the relevant `tests.*`
@@ -229,8 +241,8 @@ license may be required for non-trial deployments.
 
 Point your existing linked server at the simulator's host/port (the simulator
 defaults to the same `127.0.0.1:50000`, `Initial Catalog=testdb` used by a real
-DB2 link). Make sure the configured `database`, `user`, and `password` match the
-linked server's `Initial Catalog` and remote login.
+DB2 link). Make sure the configured `backends.db2.database`, `auth.users`, and
+password match the linked server's `Initial Catalog` and remote login.
 
 ```sql
 EXEC master.dbo.sp_addlinkedserver
@@ -262,4 +274,3 @@ sent and to add or adjust a mapping.
   little-endian data, EBCDIC CCSID 500 for protocol strings, UTF-8 / CCSID 1208
   for character data). Switch to `"dataEndian": "big"` only if your client expects
   the `QTDSQLASC` type definition.
-```
