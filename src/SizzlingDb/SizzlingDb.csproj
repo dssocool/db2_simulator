@@ -8,8 +8,8 @@
     <RootNamespace>SizzlingDb</RootNamespace>
     <AssemblyName>sizzlingdb</AssemblyName>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <!-- The CodePages package is required for IBM EBCDIC code pages on Linux/macOS. -->
-    <NoWarn>$(NoWarn);NU1510</NoWarn>
+    <!-- NU1510: CodePages is required for IBM EBCDIC on Linux/macOS. NU1900: audit feed unreachable (network), not a package issue. -->
+    <NoWarn>$(NoWarn);NU1510;NU1900</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
