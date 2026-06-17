@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SizzlingDb\SizzlingDb.csproj" />
+    <ProjectReference Include="..\..\..\src\SizzlingDb\SizzlingDb.csproj" />
   </ItemGroup>
 
   <ItemGroup>

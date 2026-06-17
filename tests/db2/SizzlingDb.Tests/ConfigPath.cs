@@ -9,7 +9,7 @@ internal static class ConfigPath
             Path.Combine(Directory.GetCurrentDirectory(), "config", "config.json"),
             Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "config", "config.json"),
             Path.Combine(AppContext.BaseDirectory, "config", "config.json"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "config", "config.json"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", "config", "config.json"),
         ];
 
         foreach (string candidate in candidates)

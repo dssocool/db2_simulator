@@ -3,6 +3,8 @@
     <Project Path="src/SizzlingDb/SizzlingDb.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/SizzlingDb.Tests/SizzlingDb.Tests.csproj" />
+    <Folder Name="/tests/db2/">
+      <Project Path="tests/db2/SizzlingDb.Tests/SizzlingDb.Tests.csproj" />
+    </Folder>
   </Folder>
 </Solution>

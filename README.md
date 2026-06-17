@@ -228,7 +228,7 @@ classes and methods run strictly in numeric order:
 | 3 | `Test03_QueryComparison.cs` | Runs the same DB2 SQL through `OPENQUERY` on the linked server and directly against DB2 with the IBM driver, then compares the result sets cell by cell (all column types, NULLs, filters, aggregates, scalar functions, and the SQL Server mirror copy). |
 
 ```bash
-dotnet test tests/SizzlingDb.Tests
+dotnet test tests/db2/SizzlingDb.Tests
 ```
 
 Tests are skipped when `config.json` is missing or the relevant `tests.*`
