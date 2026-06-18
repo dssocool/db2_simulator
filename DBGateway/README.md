@@ -76,7 +76,7 @@ to create your local server settings file.
 
 ```jsonc
 {
-  "backends": {
+  "gatewayMode": {
     "db2": {                         // configure db2 OR sqlServer, not both
       "host": "0.0.0.0",
       "port": 50000,
@@ -107,16 +107,16 @@ to create your local server settings file.
 ```
 
 The top-level `auth`, `trace`, and `matching` sections configure the simulator
-process (`dotnet run`). Configure exactly one entry under `backends` — `db2` for
+process (`dotnet run`). Configure exactly one entry under `gatewayMode` — `db2` for
 the DB2 DRDA simulator or `sqlServer` for the SQL Server TDS simulator; the
 presence of that section selects the active backend.
 
-For the SQL Server simulator backend, use `backends.sqlServer` instead of
-`backends.db2` (same top-level sections otherwise):
+For the SQL Server simulator backend, use `gatewayMode.sqlServer` instead of
+`gatewayMode.db2` (same top-level sections otherwise):
 
 ```jsonc
 {
-  "backends": {
+  "gatewayMode": {
     "sqlServer": {
       "host": "0.0.0.0",
       "port": 11433,
@@ -282,7 +282,7 @@ dotnet test tests/sqlserver/SizzlingDb.SqlServer.Tests
 
 Point your existing linked server at the simulator's host/port (the simulator
 defaults to the same `127.0.0.1:50000`, `Initial Catalog=testdb` used by a real
-DB2 link). Make sure the configured `backends.db2.database`, `auth.users`, and
+DB2 link). Make sure the configured `gatewayMode.db2.database`, `auth.users`, and
 password match the linked server's `Initial Catalog` and remote login.
 
 ```sql

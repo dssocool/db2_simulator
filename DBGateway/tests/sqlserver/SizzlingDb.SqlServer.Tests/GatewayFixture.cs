@@ -42,7 +42,7 @@ public sealed class GatewayFixture : IDisposable
 
         var config = new SizzlingDbConfig
         {
-            Backends = new BackendsConfig
+            GatewayMode = new GatewayModeConfig
             {
                 SqlServer = new SqlServerBackendConfig
                 {

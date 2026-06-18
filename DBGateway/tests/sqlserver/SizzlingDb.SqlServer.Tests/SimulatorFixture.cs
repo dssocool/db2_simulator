@@ -37,7 +37,7 @@ public sealed class SimulatorFixture : IDisposable
 
         var config = new SizzlingDbConfig
         {
-            Backends = new BackendsConfig
+            GatewayMode = new GatewayModeConfig
             {
                 SqlServer = new SqlServerBackendConfig
                 {

@@ -1,5 +1,5 @@
 {
-  "backends": {
+  "gatewayMode": {
     // Configure db2 OR sqlServer, not both.
     "db2": {
       "host": "0.0.0.0",

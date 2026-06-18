@@ -6,7 +6,7 @@ namespace SizzlingDb.Config;
 /// <summary>Root configuration loaded from config.json.</summary>
 public sealed class SizzlingDbConfig
 {
-    public BackendsConfig Backends { get; set; } = new();
+    public GatewayModeConfig GatewayMode { get; set; } = new();
     public AuthConfig Auth { get; set; } = new();
     public TraceConfig Trace { get; set; } = new();
     public MatchingConfig Matching { get; set; } = new();
@@ -40,43 +40,43 @@ public sealed class SizzlingDbConfig
     }
 
     public Db2BackendConfig RequireDb2() =>
-        Backends.Db2
+        GatewayMode.Db2
         ?? throw new InvalidOperationException(
-            "backends.db2 is required when the active backend is db2.");
+            "gatewayMode.db2 is required when the active backend is db2.");
 
     public SqlServerBackendConfig RequireSqlServer() =>
-        Backends.SqlServer
+        GatewayMode.SqlServer
         ?? throw new InvalidOperationException(
-            "backends.sqlServer is required when the active backend is sqlserver.");
+            "gatewayMode.sqlServer is required when the active backend is sqlserver.");
 
     internal void Validate()
     {
-        bool hasDb2 = Backends.Db2 is not null;
-        bool hasSqlServer = Backends.SqlServer is not null;
+        bool hasDb2 = GatewayMode.Db2 is not null;
+        bool hasSqlServer = GatewayMode.SqlServer is not null;
 
         if (hasDb2 && hasSqlServer)
             throw new InvalidOperationException(
-                "Configure exactly one backend in backends (db2 or sqlServer).");
+                "Configure exactly one backend in gatewayMode (db2 or sqlServer).");
 
         if (!hasDb2 && !hasSqlServer)
             throw new InvalidOperationException(
-                "Configure one backend in backends (db2 or sqlServer).");
+                "Configure one backend in gatewayMode (db2 or sqlServer).");
 
         if (hasDb2)
         {
             BackendType = "db2";
-            if (Backends.Db2!.Port is <= 0 or > 65535)
-                throw new InvalidOperationException($"Invalid backends.db2 port: {Backends.Db2.Port}");
+            if (GatewayMode.Db2!.Port is <= 0 or > 65535)
+                throw new InvalidOperationException($"Invalid gatewayMode.db2 port: {GatewayMode.Db2.Port}");
             return;
         }
 
         BackendType = "sqlserver";
-        if (Backends.SqlServer!.Port is <= 0 or > 65535)
-            throw new InvalidOperationException($"Invalid backends.sqlServer port: {Backends.SqlServer.Port}");
+        if (GatewayMode.SqlServer!.Port is <= 0 or > 65535)
+            throw new InvalidOperationException($"Invalid gatewayMode.sqlServer port: {GatewayMode.SqlServer.Port}");
     }
 }
 
-public sealed class BackendsConfig
+public sealed class GatewayModeConfig
 {
     public Db2BackendConfig? Db2 { get; set; }
     public SqlServerBackendConfig? SqlServer { get; set; }
